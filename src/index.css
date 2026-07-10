@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/big-shoulders-display/800.css";
+@import "@fontsource/alfa-slab-one/400.css";
+@import "@fontsource/bebas-neue/400.css";
+@import "@fontsource/anton/400.css";
+@import "@fontsource/archivo-black/400.css";
+@import "@fontsource/oswald/700.css";
+
+:root {
+  color-scheme: light;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  .no-print {
+    display: none !important;
+  }
+  html, body, #root, .app-shell, .app-body, .spec-sheet-scroll {
+    height: auto !important;
+    overflow: visible !important;
+    background: white;
+  }
+  .spec-sheet-scroll {
+    padding: 0 !important;
+  }
+  table, .avoid-break {
+    break-inside: avoid;
+  }
+}
