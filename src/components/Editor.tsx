@@ -3,12 +3,13 @@ import type { TechPack } from '../types';
 import { useStore } from '../store';
 import { DesignView } from './DesignView';
 import { SpecSheetView } from './SpecSheetView';
+import { InputView } from './InputView';
 import { TextInput, Select } from './ui/Field';
 import { downloadTechPack } from '../lib/exportImport';
 import { SIZE_OPTIONS, isSizeLabel } from '../lib/sizeChart';
 import { COLLECTION_OPTIONS, isCollectionName } from '../lib/collections';
 
-type Tab = 'design' | 'specsheet';
+type Tab = 'input' | 'design' | 'specsheet';
 
 export function Editor({ pack }: { pack: TechPack }) {
   const store = useStore();
@@ -61,6 +62,12 @@ export function Editor({ pack }: { pack: TechPack }) {
         <div className="ml-auto flex items-center gap-2">
           <div className="mr-2 flex rounded-md border border-neutral-200 p-0.5">
             <button
+              onClick={() => setTab('input')}
+              className={`rounded px-3 py-1 text-xs font-semibold ${tab === 'input' ? 'bg-rose-600 text-white' : 'text-neutral-600'}`}
+            >
+              Input
+            </button>
+            <button
               onClick={() => setTab('design')}
               className={`rounded px-3 py-1 text-xs font-semibold ${tab === 'design' ? 'bg-rose-600 text-white' : 'text-neutral-600'}`}
             >
@@ -93,7 +100,9 @@ export function Editor({ pack }: { pack: TechPack }) {
       </header>
 
       <div className="app-body min-h-0 flex-1 overflow-hidden">
-        {tab === 'design' ? <DesignView pack={pack} /> : <SpecSheetView pack={pack} />}
+        {tab === 'input' && <InputView />}
+        {tab === 'design' && <DesignView pack={pack} />}
+        {tab === 'specsheet' && <SpecSheetView pack={pack} />}
       </div>
     </div>
   );
