@@ -73,19 +73,21 @@ export function Editor({ pack }: { pack: TechPack }) {
               Spec sheet
             </button>
           </div>
-          <button
-            onClick={() => downloadTechPack(pack)}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-100"
-          >
-            Export JSON
-          </button>
           {tab === 'specsheet' && (
-            <button
-              onClick={() => window.print()}
-              className="rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800"
-            >
-              Print / Save PDF
-            </button>
+            <>
+              <button
+                onClick={() => downloadTechPack(pack)}
+                className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-100"
+              >
+                Export JSON
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800"
+              >
+                Print / Save PDF
+              </button>
+            </>
           )}
         </div>
       </header>
