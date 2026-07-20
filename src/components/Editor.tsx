@@ -27,7 +27,7 @@ export function Editor({ pack }: { pack: TechPack }) {
         <Select
           value={pack.styleName}
           onChange={(e) => store.updatePack(pack.id, { styleName: e.target.value })}
-          className="w-56 font-semibold"
+          className="!w-56 font-semibold"
         >
           {!isCollectionName(pack.styleName) && <option value={pack.styleName}>{pack.styleName || 'Collection'}</option>}
           {COLLECTION_OPTIONS.map((name) => (
@@ -40,7 +40,7 @@ export function Editor({ pack }: { pack: TechPack }) {
           value={pack.styleCode}
           onChange={(e) => store.updatePack(pack.id, { styleCode: e.target.value })}
           placeholder="Style code"
-          className="w-28"
+          className="!w-28"
         />
         <Select
           value={pack.referenceSize}
@@ -48,7 +48,7 @@ export function Editor({ pack }: { pack: TechPack }) {
             const value = e.target.value;
             if (isSizeLabel(value)) store.applySize(pack.id, value);
           }}
-          className="w-24"
+          className="!w-24"
         >
           {!isSizeLabel(pack.referenceSize) && <option value={pack.referenceSize}>{pack.referenceSize}</option>}
           {SIZE_OPTIONS.map((size) => (
