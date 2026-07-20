@@ -6,6 +6,7 @@ import { SpecSheetView } from './SpecSheetView';
 import { TextInput, Select } from './ui/Field';
 import { downloadTechPack } from '../lib/exportImport';
 import { SIZE_OPTIONS, isSizeLabel } from '../lib/sizeChart';
+import { COLLECTION_OPTIONS, isCollectionName } from '../lib/collections';
 
 type Tab = 'design' | 'specsheet';
 
@@ -23,12 +24,18 @@ export function Editor({ pack }: { pack: TechPack }) {
           ← Packs
         </button>
 
-        <TextInput
+        <Select
           value={pack.styleName}
           onChange={(e) => store.updatePack(pack.id, { styleName: e.target.value })}
-          placeholder="Style name"
-          className="w-48 font-semibold"
-        />
+          className="w-56 font-semibold"
+        >
+          {!isCollectionName(pack.styleName) && <option value={pack.styleName}>{pack.styleName || 'Collection'}</option>}
+          {COLLECTION_OPTIONS.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </Select>
         <TextInput
           value={pack.styleCode}
           onChange={(e) => store.updatePack(pack.id, { styleCode: e.target.value })}

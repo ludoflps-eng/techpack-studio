@@ -39,7 +39,7 @@ export function createZone(face: Face, order: number): PrintZone {
   };
 }
 
-export function createTechPack(name = 'New style'): TechPack {
+export function createTechPack(name = 'Collection'): TechPack {
   const now = Date.now();
   return {
     id: nanoid(8),
