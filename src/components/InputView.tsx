@@ -4,11 +4,11 @@ export function InputView() {
   return (
     <div className="h-full overflow-y-auto bg-neutral-100 p-6">
       <div className="mx-auto max-w-3xl bg-white p-8 shadow-sm">
+        <img src="/pom-diagram.png" alt="Point-of-measure diagram" className="mb-6 w-full" />
+
         <h1 className="mb-6 text-center text-xl font-bold uppercase tracking-widest text-neutral-900">
           Tee shirt oversize
         </h1>
-
-        <img src="/pom-diagram.png" alt="Point-of-measure diagram" className="mb-8 w-full" />
 
         <table className="w-full border-collapse text-center text-sm">
           <thead>
