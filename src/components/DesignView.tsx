@@ -88,7 +88,12 @@ export function DesignView({ pack }: { pack: TechPack }) {
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {section === 'garment' && (
-            <GarmentForm garment={pack.garment} onChange={(patch) => store.updateGarment(pack.id, patch)} />
+            <GarmentForm
+              garment={pack.garment}
+              referenceSize={pack.referenceSize}
+              onChange={(patch) => store.updateGarment(pack.id, patch)}
+              onSizeChange={(size) => store.applySize(pack.id, size)}
+            />
           )}
 
           {(section === 'front' || section === 'back') && (

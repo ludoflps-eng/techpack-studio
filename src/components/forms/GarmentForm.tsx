@@ -1,28 +1,48 @@
 import type { GarmentSpec } from '../../types';
-import { Field, NumberInput, TextInput, ColorField, Textarea } from '../ui/Field';
+import { Field, Select, TextInput, ColorField, Textarea } from '../ui/Field';
 import { nearestColorName } from '../../lib/colorNames';
+import { GARMENT_STYLE_OPTIONS, isGarmentStyle } from '../../lib/garmentStyles';
+import { SIZE_OPTIONS, isSizeLabel, type SizeLabel } from '../../lib/sizeChart';
 
 export function GarmentForm({
   garment,
+  referenceSize,
   onChange,
+  onSizeChange,
 }: {
   garment: GarmentSpec;
+  referenceSize: string;
   onChange: (patch: Partial<GarmentSpec>) => void;
+  onSizeChange: (size: SizeLabel) => void;
 }) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Chest width (flat, cm)">
-          <NumberInput
-            value={garment.chestWidthCm}
-            onChange={(e) => onChange({ chestWidthCm: Number(e.target.value) })}
-          />
+        <Field label="T-shirt style">
+          <Select value={garment.style} onChange={(e) => onChange({ style: e.target.value })}>
+            {!isGarmentStyle(garment.style) && <option value={garment.style}>{garment.style}</option>}
+            {GARMENT_STYLE_OPTIONS.map((style) => (
+              <option key={style} value={style}>
+                {style}
+              </option>
+            ))}
+          </Select>
         </Field>
-        <Field label="Body length, collar to hem (cm)">
-          <NumberInput
-            value={garment.bodyLengthCm}
-            onChange={(e) => onChange({ bodyLengthCm: Number(e.target.value) })}
-          />
+        <Field label="Size">
+          <Select
+            value={referenceSize}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (isSizeLabel(value)) onSizeChange(value);
+            }}
+          >
+            {!isSizeLabel(referenceSize) && <option value={referenceSize}>{referenceSize}</option>}
+            {SIZE_OPTIONS.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </Select>
         </Field>
       </div>
       <Field label="Fabric color">

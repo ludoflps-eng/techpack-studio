@@ -1,9 +1,11 @@
 import { nanoid } from 'nanoid';
 import type { Face, GarmentSpec, PrintZone, TechPack } from './types';
 import { SIZE_CHART } from './lib/sizeChart';
+import { GARMENT_STYLE_OPTIONS } from './lib/garmentStyles';
 
 export function createGarmentDefaults(): GarmentSpec {
   return {
+    style: GARMENT_STYLE_OPTIONS[0],
     ...SIZE_CHART.M,
     fabricColorName: 'White',
     fabricPantone: '',

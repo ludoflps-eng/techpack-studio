@@ -6,7 +6,6 @@ import { SpecSheetView } from './SpecSheetView';
 import { InputView } from './InputView';
 import { TextInput, Select } from './ui/Field';
 import { downloadTechPack } from '../lib/exportImport';
-import { SIZE_OPTIONS, isSizeLabel } from '../lib/sizeChart';
 import { COLLECTION_OPTIONS, isCollectionName } from '../lib/collections';
 
 type Tab = 'input' | 'design' | 'specsheet';
@@ -43,21 +42,6 @@ export function Editor({ pack }: { pack: TechPack }) {
           placeholder="Style code"
           className="!w-28"
         />
-        <Select
-          value={pack.referenceSize}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (isSizeLabel(value)) store.applySize(pack.id, value);
-          }}
-          className="!w-24"
-        >
-          {!isSizeLabel(pack.referenceSize) && <option value={pack.referenceSize}>{pack.referenceSize}</option>}
-          {SIZE_OPTIONS.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </Select>
 
         <div className="ml-auto flex items-center gap-2">
           <div className="mr-2 flex rounded-md border border-neutral-200 p-0.5">

@@ -55,6 +55,7 @@ export interface PrintZone {
 }
 
 export interface GarmentSpec {
+  style: string;
   chestWidthCm: number;
   bodyLengthCm: number;
   fabricColorName: string;
