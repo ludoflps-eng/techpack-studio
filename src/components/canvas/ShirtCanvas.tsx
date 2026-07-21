@@ -1,7 +1,23 @@
 import type { Face, GarmentSpec, PrintZone } from '../../types';
-import { canvasSize, shirtPath, zoneRect } from '../../lib/geometry';
+import { canvasSize, seamOverlay, shirtPath, zoneRect } from '../../lib/geometry';
 import { ZonePrint } from './ZonePrint';
 import { DimensionOverlay } from './DimensionOverlay';
+
+function SeamDetails({ chestWidthCm, bodyLengthCm, face }: { chestWidthCm: number; bodyLengthCm: number; face: Face }) {
+  const { collarPath, hemLine, cuffLines, shoulderTicks } = seamOverlay(chestWidthCm, bodyLengthCm, face);
+  return (
+    <g stroke="#2a2a2a" fill="none" strokeLinecap="round">
+      <path d={collarPath} strokeWidth={0.2} strokeDasharray="0.4,0.4" />
+      <line {...hemLine} strokeWidth={0.2} strokeDasharray="0.4,0.4" />
+      {cuffLines.map((line, i) => (
+        <line key={i} {...line} strokeWidth={0.2} strokeDasharray="0.4,0.4" />
+      ))}
+      {shoulderTicks.map((tick, i) => (
+        <line key={i} {...tick} strokeWidth={0.25} />
+      ))}
+    </g>
+  );
+}
 
 export function ShirtCanvas({
   face,
@@ -32,6 +48,7 @@ export function ShirtCanvas({
           strokeWidth={0.25}
           strokeLinejoin="round"
         />
+        <SeamDetails chestWidthCm={garment.chestWidthCm} bodyLengthCm={garment.bodyLengthCm} face={face} />
 
         {showDimensions && (
           <g stroke="#64748b" strokeWidth={0.18}>
