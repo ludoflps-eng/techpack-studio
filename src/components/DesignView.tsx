@@ -5,6 +5,7 @@ import { ShirtCanvas } from './canvas/ShirtCanvas';
 import { GarmentForm } from './forms/GarmentForm';
 import { ZoneList } from './forms/ZoneList';
 import { NotesForm } from './forms/NotesForm';
+import { MeasurementGuideControl } from './forms/MeasurementGuideControl';
 
 type Section = 'garment' | 'front' | 'back' | 'notes';
 
@@ -12,6 +13,8 @@ export function DesignView({ pack }: { pack: TechPack }) {
   const store = useStore();
   const [section, setSection] = useState<Section>('front');
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  const [guidesEnabled, setGuidesEnabled] = useState(false);
+  const [selectedPoints, setSelectedPoints] = useState<string[]>([]);
 
   const tabs: { id: Section; label: string }[] = [
     { id: 'garment', label: 'Garment & fabric' },
@@ -23,6 +26,12 @@ export function DesignView({ pack }: { pack: TechPack }) {
   return (
     <div className="grid h-full min-h-0 grid-cols-1 gap-6 overflow-hidden lg:grid-cols-[1fr_400px]">
       <div className="flex min-h-0 flex-col gap-3 overflow-y-auto p-6">
+        <MeasurementGuideControl
+          enabled={guidesEnabled}
+          onEnabledChange={setGuidesEnabled}
+          selectedPoints={selectedPoints}
+          onSelectedPointsChange={setSelectedPoints}
+        />
         <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="rounded-xl border border-neutral-200 bg-white p-4">
             <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-neutral-400">
