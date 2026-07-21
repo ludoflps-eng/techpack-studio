@@ -94,10 +94,16 @@ const TEMPLATES: Record<Face, ImageCalibration> = {
   },
 };
 
+/** cm-per-reference-image-pixel for a given face — shared by the template image itself and by
+ *  measurement guide overlays, so a guide drawn at any (imgDX, imgDY) offset from the image's
+ *  collar/center reference always lines up with the picture regardless of chest width. */
+export function templateScale(chestWidthCm: number, face: Face): number {
+  return chestWidthCm / 2 / TEMPLATES[face].underarmDX;
+}
+
 export function templateImage(chestWidthCm: number, face: Face): ImagePlacement {
   const t = TEMPLATES[face];
-  const halfChest = chestWidthCm / 2;
-  const scale = halfChest / t.underarmDX;
+  const scale = templateScale(chestWidthCm, face);
   return {
     href: t.href,
     x: -t.centerX * scale,

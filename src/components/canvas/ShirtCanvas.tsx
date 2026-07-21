@@ -1,6 +1,7 @@
 import type { Face, GarmentSpec, PrintZone } from '../../types';
 import { canvasSize, templateImage, zoneRect } from '../../lib/geometry';
 import { ZonePrint } from './ZonePrint';
+import { MeasurementGuideOverlay } from './MeasurementGuideOverlay';
 
 export function ShirtCanvas({
   face,
@@ -8,12 +9,18 @@ export function ShirtCanvas({
   zones,
   selectedZoneId,
   onSelectZone,
+  guidesEnabled,
+  selectedPoints,
+  referenceSize,
 }: {
   face: Face;
   garment: GarmentSpec;
   zones: PrintZone[];
   selectedZoneId?: string | null;
   onSelectZone?: (id: string) => void;
+  guidesEnabled?: boolean;
+  selectedPoints?: string[];
+  referenceSize?: string;
 }) {
   const { width, height, originX, originY } = canvasSize(garment);
   const faceZones = zones.filter((z) => z.face === face);
@@ -35,6 +42,15 @@ export function ShirtCanvas({
             />
           );
         })}
+
+        {guidesEnabled && selectedPoints && selectedPoints.length > 0 && (
+          <MeasurementGuideOverlay
+            face={face}
+            garment={garment}
+            referenceSize={referenceSize ?? 'M'}
+            selectedPoints={selectedPoints}
+          />
+        )}
       </g>
     </svg>
   );

@@ -46,6 +46,9 @@ export function DesignView({ pack }: { pack: TechPack }) {
                 setSelectedZoneId(id);
                 setSection('front');
               }}
+              guidesEnabled={guidesEnabled}
+              selectedPoints={selectedPoints}
+              referenceSize={pack.referenceSize}
             />
           </div>
           <div className="rounded-xl border border-neutral-200 bg-white p-4">
@@ -61,6 +64,9 @@ export function DesignView({ pack }: { pack: TechPack }) {
                 setSelectedZoneId(id);
                 setSection('back');
               }}
+              guidesEnabled={guidesEnabled}
+              selectedPoints={selectedPoints}
+              referenceSize={pack.referenceSize}
             />
           </div>
         </div>
