@@ -23,7 +23,6 @@ export interface SilhouetteKeyPoints {
   halfChest: number;
   neckHalf: number;
   shoulderY: number;
-  shoulderPointX: number;
   sleeveCapX: number;
   sleeveCapY: number;
   sleeveCuffOuterX: number;
@@ -38,19 +37,18 @@ export interface SilhouetteKeyPoints {
  *  fixed, matching how the rest of the app treats vertical garment proportions. */
 export function silhouetteKeyPoints(chestWidthCm: number): SilhouetteKeyPoints {
   const halfChest = chestWidthCm / 2;
-  const shoulderY = -1;
+  const shoulderY = -2;
   return {
     halfChest,
     neckHalf: chestWidthCm * 0.12,
     shoulderY,
-    shoulderPointX: halfChest * 0.5,
-    sleeveCapX: halfChest + 7,
-    sleeveCapY: shoulderY + 1,
-    sleeveCuffOuterX: halfChest + 6,
-    sleeveCuffInnerX: halfChest + 1.5,
+    sleeveCapX: halfChest + 8,
+    sleeveCapY: shoulderY + 5,
+    sleeveCuffOuterX: halfChest + 7,
+    sleeveCuffInnerX: halfChest + 2,
     sleeveCuffY: shoulderY + 8,
     underarmX: halfChest,
-    underarmY: shoulderY + 10.5,
+    underarmY: shoulderY + 10,
   };
 }
 
@@ -58,27 +56,17 @@ export function neckDipFor(face: Face) {
   return face === 'front' ? 3.6 : 1.4;
 }
 
-/** Returns an SVG path `d` string (in local cm coords) for a flat tee sketch with distinct
- *  cap sleeves and a rounded crew neckline. */
+/** Returns an SVG path `d` string (in local cm coords) for a flat tee sketch: a single
+ *  shoulder-to-sleeve line (like a simple raglan-ish cap) ending in a short flat cuff, so
+ *  there's no separate shoulder-point kink to look disjointed. */
 export function shirtPath(chestWidthCm: number, bodyLengthCm: number, face: Face): string {
-  const {
-    neckHalf,
-    shoulderY,
-    shoulderPointX,
-    sleeveCapX,
-    sleeveCapY,
-    sleeveCuffOuterX,
-    sleeveCuffInnerX,
-    sleeveCuffY,
-    underarmX,
-    underarmY,
-  } = silhouetteKeyPoints(chestWidthCm);
+  const { neckHalf, shoulderY, sleeveCapX, sleeveCapY, sleeveCuffOuterX, sleeveCuffInnerX, sleeveCuffY, underarmX, underarmY } =
+    silhouetteKeyPoints(chestWidthCm);
   const neckDip = neckDipFor(face);
   const hemY = bodyLengthCm;
 
   return [
     `M ${-neckHalf} ${shoulderY}`,
-    `L ${-shoulderPointX} ${shoulderY}`,
     `L ${-sleeveCapX} ${sleeveCapY}`,
     `L ${-sleeveCuffOuterX} ${sleeveCuffY}`,
     `L ${-sleeveCuffInnerX} ${sleeveCuffY}`,
@@ -89,7 +77,6 @@ export function shirtPath(chestWidthCm: number, bodyLengthCm: number, face: Face
     `Q ${underarmX} ${sleeveCuffY} ${sleeveCuffInnerX} ${sleeveCuffY}`,
     `L ${sleeveCuffOuterX} ${sleeveCuffY}`,
     `L ${sleeveCapX} ${sleeveCapY}`,
-    `L ${shoulderPointX} ${shoulderY}`,
     `L ${neckHalf} ${shoulderY}`,
     `Q 0 ${shoulderY + neckDip} ${-neckHalf} ${shoulderY}`,
     'Z',
@@ -133,12 +120,19 @@ export function seamOverlay(chestWidthCm: number, bodyLengthCm: number, face: Fa
     { x1: kp.sleeveCuffInnerX, y1: cuffY, x2: kp.sleeveCuffOuterX, y2: cuffY },
   ];
 
-  const tickHalfLen = 0.5;
+  // Small tick marks straddling the shoulder seam (the neck-to-sleeve-cap line), perpendicular
+  // to that line's direction so they read as stitch marks rather than plain vertical hatching.
+  const dx = kp.sleeveCapX - kp.neckHalf;
+  const dy = kp.sleeveCapY - kp.shoulderY;
+  const len = Math.hypot(dx, dy) || 1;
+  const perpX = (-dy / len) * 0.5;
+  const perpY = (dx / len) * 0.5;
   const shoulderTicks: SeamLine[] = [];
-  for (const t of [0.3, 0.5, 0.7]) {
-    const dist = kp.neckHalf + t * (kp.shoulderPointX - kp.neckHalf);
-    shoulderTicks.push({ x1: -dist, y1: kp.shoulderY - tickHalfLen, x2: -dist, y2: kp.shoulderY + tickHalfLen });
-    shoulderTicks.push({ x1: dist, y1: kp.shoulderY - tickHalfLen, x2: dist, y2: kp.shoulderY + tickHalfLen });
+  for (const t of [0.25, 0.45]) {
+    const px = kp.neckHalf + t * dx;
+    const py = kp.shoulderY + t * dy;
+    shoulderTicks.push({ x1: -(px - perpX), y1: py - perpY, x2: -(px + perpX), y2: py + perpY });
+    shoulderTicks.push({ x1: px - perpX, y1: py - perpY, x2: px + perpX, y2: py + perpY });
   }
 
   return { collarPath, hemLine, cuffLines, shoulderTicks };
