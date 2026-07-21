@@ -31,7 +31,7 @@ export type GuideDef = HorizontalGuideDef | VerticalGuideDef;
  * refine once more reference pictures come in for the remaining points.
  */
 export const MEASUREMENT_GUIDES: Partial<Record<string, GuideDef>> = {
-  A: { orientation: 'vertical', face: 'front', color: '#16a34a', imgDX: 0, imgDYTop: -26, imgDYBottom: 262 },
+  A: { orientation: 'vertical', face: 'front', color: '#16a34a', imgDX: 0, imgDYTop: -22, imgDYBottom: 276 },
   B: { orientation: 'horizontal', face: 'front', color: '#dc2626', imgDY: 52, imgHalfWidth: 108.5 },
   D: { orientation: 'horizontal', face: 'front', color: '#2563eb', imgDY: 97, imgHalfWidth: 108.5 },
   E: { orientation: 'horizontal', face: 'front', color: '#f97316', imgDY: 167, imgHalfWidth: 108.5 },
