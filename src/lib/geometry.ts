@@ -56,6 +56,41 @@ export function neckDipFor(face: Face) {
   return face === 'front' ? 3.6 : 1.4;
 }
 
+export interface ImagePlacement {
+  href: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Calibration for the front-view reference image (419x318px): where its collar-base point
+ * (the "depuis le col" y=0 reference) and its underarm point (the safe-area x=halfChest
+ * reference) fall in image pixels, so the picture can be scaled/positioned to line up with
+ * the same cm coordinate space every print zone is placed in.
+ */
+const FRONT_TEMPLATE = {
+  href: '/front-template.png',
+  naturalWidth: 419,
+  naturalHeight: 318,
+  centerX: 209.5,
+  collarY: 38,
+  underarmDX: 108.5,
+};
+
+export function frontTemplateImage(chestWidthCm: number): ImagePlacement {
+  const halfChest = chestWidthCm / 2;
+  const scale = halfChest / FRONT_TEMPLATE.underarmDX;
+  return {
+    href: FRONT_TEMPLATE.href,
+    x: -FRONT_TEMPLATE.centerX * scale,
+    y: -FRONT_TEMPLATE.collarY * scale,
+    width: FRONT_TEMPLATE.naturalWidth * scale,
+    height: FRONT_TEMPLATE.naturalHeight * scale,
+  };
+}
+
 /** Returns an SVG path `d` string (in local cm coords) for a flat tee sketch: a single
  *  shoulder-to-sleeve line (like a simple raglan-ish cap) ending in a short flat cuff, so
  *  there's no separate shoulder-point kink to look disjointed. */

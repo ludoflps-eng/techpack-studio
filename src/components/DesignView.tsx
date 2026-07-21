@@ -12,7 +12,6 @@ export function DesignView({ pack }: { pack: TechPack }) {
   const store = useStore();
   const [section, setSection] = useState<Section>('front');
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
-  const [showDimensions, setShowDimensions] = useState(true);
 
   const tabs: { id: Section; label: string }[] = [
     { id: 'garment', label: 'Garment & fabric' },
@@ -24,15 +23,6 @@ export function DesignView({ pack }: { pack: TechPack }) {
   return (
     <div className="grid h-full min-h-0 grid-cols-1 gap-6 overflow-hidden lg:grid-cols-[1fr_400px]">
       <div className="flex min-h-0 flex-col gap-3 overflow-y-auto p-6">
-        <label className="flex w-fit items-center gap-2 self-end text-xs font-medium text-neutral-600">
-          <input
-            type="checkbox"
-            checked={showDimensions}
-            onChange={(e) => setShowDimensions(e.target.checked)}
-            className="h-4 w-4 accent-rose-600"
-          />
-          Show measurement guides
-        </label>
         <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="rounded-xl border border-neutral-200 bg-white p-4">
             <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-neutral-400">
@@ -42,7 +32,6 @@ export function DesignView({ pack }: { pack: TechPack }) {
               face="front"
               garment={pack.garment}
               zones={pack.zones}
-              showDimensions={showDimensions}
               selectedZoneId={selectedZoneId}
               onSelectZone={(id) => {
                 setSelectedZoneId(id);
@@ -58,7 +47,6 @@ export function DesignView({ pack }: { pack: TechPack }) {
               face="back"
               garment={pack.garment}
               zones={pack.zones}
-              showDimensions={showDimensions}
               selectedZoneId={selectedZoneId}
               onSelectZone={(id) => {
                 setSelectedZoneId(id);

@@ -73,13 +73,13 @@ export function SpecSheetView({ pack }: { pack: TechPack }) {
             <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
               Front
             </p>
-            <ShirtCanvas face="front" garment={pack.garment} zones={pack.zones} showDimensions />
+            <ShirtCanvas face="front" garment={pack.garment} zones={pack.zones} />
           </div>
           <div>
             <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
               Back
             </p>
-            <ShirtCanvas face="back" garment={pack.garment} zones={pack.zones} showDimensions />
+            <ShirtCanvas face="back" garment={pack.garment} zones={pack.zones} />
           </div>
         </div>
 
