@@ -5,9 +5,9 @@ import {
   type GarmentSpec,
   type PrintZone,
 } from '../../types';
-import { Field, NumberInput, TextInput, Textarea, Select, ColorField } from '../ui/Field';
+import { Field, NumberInput, TextInput, Textarea, Select } from '../ui/Field';
 import { zoneRect } from '../../lib/geometry';
-import { nearestColorName } from '../../lib/colorNames';
+import { lookupPantone } from '../../lib/pantone';
 
 export function ZoneCard({
   zone,
@@ -34,6 +34,8 @@ export function ZoneCard({
   const fitted = zoneRect(zone, garment);
   const isClamped =
     Math.abs(fitted.width - zone.widthCm) > 0.05 || Math.abs(fitted.height - zone.heightCm) > 0.05;
+  const inkMatch = lookupPantone(zone.pantone);
+  const inkUnresolved = zone.pantone.trim() !== '' && !inkMatch;
 
   return (
     <div
@@ -146,27 +148,39 @@ export function ZoneCard({
             </Field>
           </div>
 
-          <Field label="Ink color">
-            <ColorField
-              value={zone.hex}
-              onChange={(hex) => {
-                const name = nearestColorName(hex);
-                onChange(name ? { hex, colorName: name } : { hex });
-              }}
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Color name">
-              <TextInput value={zone.colorName} onChange={(e) => onChange({ colorName: e.target.value })} />
-            </Field>
-            <Field label="Pantone">
+          <Field label="Ink Pantone">
+            <div className="flex items-center gap-2">
+              <span
+                className="h-9 w-9 shrink-0 rounded border border-neutral-300"
+                style={
+                  inkMatch
+                    ? { background: inkMatch.hex }
+                    : {
+                        background:
+                          'repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 4px, #ffffff 4px, #ffffff 8px)',
+                      }
+                }
+                title={inkMatch ? inkMatch.hex : 'Not recognized'}
+              />
               <TextInput
                 placeholder="e.g. 812 C"
                 value={zone.pantone}
-                onChange={(e) => onChange({ pantone: e.target.value })}
+                onChange={(e) => {
+                  const ref = e.target.value;
+                  const m = lookupPantone(ref);
+                  onChange(m ? { pantone: ref, hex: m.hex, colorName: m.name } : { pantone: ref });
+                }}
               />
-            </Field>
-          </div>
+            </div>
+            {inkUnresolved && (
+              <p className="mt-1 text-xs text-amber-600">
+                Not in our reference list — swatch and name are unchanged. Enter the color name manually below.
+              </p>
+            )}
+          </Field>
+          <Field label="Color name">
+            <TextInput value={zone.colorName} onChange={(e) => onChange({ colorName: e.target.value })} />
+          </Field>
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Print width (cm)">

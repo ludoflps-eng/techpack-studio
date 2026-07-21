@@ -58,38 +58,6 @@ const NAME_ALIASES: { pattern: RegExp; hex: string }[] = [
   { pattern: /violet/i, hex: '#800080' },
 ];
 
-function parseHex(hex: string): [number, number, number] | null {
-  const clean = hex.trim().replace(/^#/, '');
-  const full =
-    clean.length === 3
-      ? clean
-          .split('')
-          .map((c) => c + c)
-          .join('')
-      : clean;
-  if (!/^[0-9a-fA-F]{6}$/.test(full)) return null;
-  return [parseInt(full.slice(0, 2), 16), parseInt(full.slice(2, 4), 16), parseInt(full.slice(4, 6), 16)];
-}
-
-/** Nearest named color for a hex string, or null if the hex is incomplete/invalid. */
-export function nearestColorName(hex: string): string | null {
-  const rgb = parseHex(hex);
-  if (!rgb) return null;
-  const [r, g, b] = rgb;
-
-  let best = NAMED_COLORS[0];
-  let bestDist = Infinity;
-  for (const candidate of NAMED_COLORS) {
-    const [cr, cg, cb] = parseHex(candidate.hex)!;
-    const dist = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2;
-    if (dist < bestDist) {
-      bestDist = dist;
-      best = candidate;
-    }
-  }
-  return best.name;
-}
-
 /** Best-effort reverse lookup: a color name/description -> an approximate swatch hex. */
 export function hexForColorName(name: string): string | null {
   const clean = name.trim();

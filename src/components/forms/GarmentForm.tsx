@@ -1,8 +1,8 @@
 import type { GarmentSpec } from '../../types';
-import { Field, Select, TextInput, ColorField, Textarea } from '../ui/Field';
-import { nearestColorName } from '../../lib/colorNames';
+import { Field, Select, TextInput, Textarea } from '../ui/Field';
 import { GARMENT_STYLE_OPTIONS, isGarmentStyle } from '../../lib/garmentStyles';
 import { SIZE_OPTIONS, isSizeLabel, type SizeLabel } from '../../lib/sizeChart';
+import { lookupPantone } from '../../lib/pantone';
 
 export function GarmentForm({
   garment,
@@ -15,6 +15,9 @@ export function GarmentForm({
   onChange: (patch: Partial<GarmentSpec>) => void;
   onSizeChange: (size: SizeLabel) => void;
 }) {
+  const match = lookupPantone(garment.fabricPantone);
+  const unresolved = garment.fabricPantone.trim() !== '' && !match;
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -45,30 +48,45 @@ export function GarmentForm({
           </Select>
         </Field>
       </div>
-      <Field label="Fabric color">
-        <ColorField
-          value={garment.fabricHex}
-          onChange={(hex) => {
-            const name = nearestColorName(hex);
-            onChange(name ? { fabricHex: hex, fabricColorName: name } : { fabricHex: hex });
-          }}
-        />
-      </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Fabric color name">
-          <TextInput
-            value={garment.fabricColorName}
-            onChange={(e) => onChange({ fabricColorName: e.target.value })}
+
+      <Field label="Fabric Pantone">
+        <div className="flex items-center gap-2">
+          <span
+            className="h-9 w-9 shrink-0 rounded border border-neutral-300"
+            style={
+              match
+                ? { background: match.hex }
+                : {
+                    background:
+                      'repeating-linear-gradient(45deg, #e5e5e5, #e5e5e5 4px, #ffffff 4px, #ffffff 8px)',
+                  }
+            }
+            title={match ? match.hex : 'Not recognized'}
           />
-        </Field>
-        <Field label="Fabric Pantone">
           <TextInput
             placeholder="e.g. 7528 C"
             value={garment.fabricPantone}
-            onChange={(e) => onChange({ fabricPantone: e.target.value })}
+            onChange={(e) => {
+              const ref = e.target.value;
+              const m = lookupPantone(ref);
+              onChange(m ? { fabricPantone: ref, fabricHex: m.hex, fabricColorName: m.name } : { fabricPantone: ref });
+            }}
           />
-        </Field>
-      </div>
+        </div>
+        {unresolved && (
+          <p className="mt-1 text-xs text-amber-600">
+            Not in our reference list — swatch and name are unchanged. Enter the color name manually below.
+          </p>
+        )}
+      </Field>
+
+      <Field label="Fabric color name">
+        <TextInput
+          value={garment.fabricColorName}
+          onChange={(e) => onChange({ fabricColorName: e.target.value })}
+        />
+      </Field>
+
       <Field label="Fabric composition">
         <Textarea
           rows={2}

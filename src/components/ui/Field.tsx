@@ -29,23 +29,3 @@ export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
 export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return <select {...props} className={`${baseInput} ${props.className ?? ''}`} />;
 }
-
-export function ColorField({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (hex: string) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <input
-        type="color"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-8 w-8 shrink-0 cursor-pointer rounded border border-neutral-300 p-0"
-      />
-      <TextInput value={value} onChange={(e) => onChange(e.target.value)} className="font-mono" />
-    </div>
-  );
-}
