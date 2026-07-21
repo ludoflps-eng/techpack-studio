@@ -52,10 +52,6 @@ export function silhouetteKeyPoints(chestWidthCm: number): SilhouetteKeyPoints {
   };
 }
 
-export function neckDipFor(face: Face) {
-  return face === 'front' ? 3.6 : 1.4;
-}
-
 export interface ImagePlacement {
   href: string;
   x: number;
@@ -64,113 +60,51 @@ export interface ImagePlacement {
   height: number;
 }
 
+interface ImageCalibration {
+  href: string;
+  naturalWidth: number;
+  naturalHeight: number;
+  centerX: number;
+  collarY: number;
+  underarmDX: number;
+}
+
 /**
- * Calibration for the front-view reference image (419x318px): where its collar-base point
- * (the "depuis le col" y=0 reference) and its underarm point (the safe-area x=halfChest
- * reference) fall in image pixels, so the picture can be scaled/positioned to line up with
- * the same cm coordinate space every print zone is placed in.
+ * Calibration for each reference image: where its collar-base point (the "depuis le col" y=0
+ * reference) and its underarm point (the safe-area x=halfChest reference) fall in image pixels,
+ * so the picture can be scaled/positioned to line up with the same cm coordinate space every
+ * print zone is placed in.
  */
-const FRONT_TEMPLATE = {
-  href: '/front-template.png',
-  naturalWidth: 419,
-  naturalHeight: 318,
-  centerX: 209.5,
-  collarY: 38,
-  underarmDX: 108.5,
+const TEMPLATES: Record<Face, ImageCalibration> = {
+  front: {
+    href: '/front-template.png',
+    naturalWidth: 419,
+    naturalHeight: 318,
+    centerX: 209.5,
+    collarY: 38,
+    underarmDX: 108.5,
+  },
+  back: {
+    href: '/back-template.png',
+    naturalWidth: 431,
+    naturalHeight: 312,
+    centerX: 215.5,
+    collarY: 37,
+    underarmDX: 111.5,
+  },
 };
 
-export function frontTemplateImage(chestWidthCm: number): ImagePlacement {
+export function templateImage(chestWidthCm: number, face: Face): ImagePlacement {
+  const t = TEMPLATES[face];
   const halfChest = chestWidthCm / 2;
-  const scale = halfChest / FRONT_TEMPLATE.underarmDX;
+  const scale = halfChest / t.underarmDX;
   return {
-    href: FRONT_TEMPLATE.href,
-    x: -FRONT_TEMPLATE.centerX * scale,
-    y: -FRONT_TEMPLATE.collarY * scale,
-    width: FRONT_TEMPLATE.naturalWidth * scale,
-    height: FRONT_TEMPLATE.naturalHeight * scale,
+    href: t.href,
+    x: -t.centerX * scale,
+    y: -t.collarY * scale,
+    width: t.naturalWidth * scale,
+    height: t.naturalHeight * scale,
   };
-}
-
-/** Returns an SVG path `d` string (in local cm coords) for a flat tee sketch: a single
- *  shoulder-to-sleeve line (like a simple raglan-ish cap) ending in a short flat cuff, so
- *  there's no separate shoulder-point kink to look disjointed. */
-export function shirtPath(chestWidthCm: number, bodyLengthCm: number, face: Face): string {
-  const { neckHalf, shoulderY, sleeveCapX, sleeveCapY, sleeveCuffOuterX, sleeveCuffInnerX, sleeveCuffY, underarmX, underarmY } =
-    silhouetteKeyPoints(chestWidthCm);
-  const neckDip = neckDipFor(face);
-  const hemY = bodyLengthCm;
-
-  return [
-    `M ${-neckHalf} ${shoulderY}`,
-    `L ${-sleeveCapX} ${sleeveCapY}`,
-    `L ${-sleeveCuffOuterX} ${sleeveCuffY}`,
-    `L ${-sleeveCuffInnerX} ${sleeveCuffY}`,
-    `Q ${-underarmX} ${sleeveCuffY} ${-underarmX} ${underarmY}`,
-    `L ${-underarmX} ${hemY}`,
-    `L ${underarmX} ${hemY}`,
-    `L ${underarmX} ${underarmY}`,
-    `Q ${underarmX} ${sleeveCuffY} ${sleeveCuffInnerX} ${sleeveCuffY}`,
-    `L ${sleeveCuffOuterX} ${sleeveCuffY}`,
-    `L ${sleeveCapX} ${sleeveCapY}`,
-    `L ${neckHalf} ${shoulderY}`,
-    `Q 0 ${shoulderY + neckDip} ${-neckHalf} ${shoulderY}`,
-    'Z',
-  ].join(' ');
-}
-
-export interface SeamLine {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
-
-export interface SeamOverlay {
-  /** Ribbed collar band's inner edge — also doubles as the collar seam line. */
-  collarPath: string;
-  hemLine: SeamLine;
-  cuffLines: SeamLine[];
-  shoulderTicks: SeamLine[];
-}
-
-/** Stitch-line details (collar rib, cuff hem, body hem, shoulder seam ticks) drawn on top of
- *  the filled silhouette, at fixed insets from the matching edges in `shirtPath`. */
-export function seamOverlay(chestWidthCm: number, bodyLengthCm: number, face: Face): SeamOverlay {
-  const kp = silhouetteKeyPoints(chestWidthCm);
-  const neckDip = neckDipFor(face);
-
-  const collarNeckHalf = Math.max(kp.neckHalf - 1.3, 1);
-  const collarShoulderY = kp.shoulderY + 1.1;
-  const collarDip = neckDip * 0.7;
-  const collarPath = `M ${-collarNeckHalf} ${collarShoulderY} Q 0 ${collarShoulderY + collarDip} ${collarNeckHalf} ${collarShoulderY}`;
-
-  const hemInset = 1.8;
-  const hemY = bodyLengthCm - hemInset;
-  const hemLine: SeamLine = { x1: -kp.underarmX, y1: hemY, x2: kp.underarmX, y2: hemY };
-
-  const cuffInset = 1.2;
-  const cuffY = kp.sleeveCuffY - cuffInset;
-  const cuffLines: SeamLine[] = [
-    { x1: -kp.sleeveCuffOuterX, y1: cuffY, x2: -kp.sleeveCuffInnerX, y2: cuffY },
-    { x1: kp.sleeveCuffInnerX, y1: cuffY, x2: kp.sleeveCuffOuterX, y2: cuffY },
-  ];
-
-  // Small tick marks straddling the shoulder seam (the neck-to-sleeve-cap line), perpendicular
-  // to that line's direction so they read as stitch marks rather than plain vertical hatching.
-  const dx = kp.sleeveCapX - kp.neckHalf;
-  const dy = kp.sleeveCapY - kp.shoulderY;
-  const len = Math.hypot(dx, dy) || 1;
-  const perpX = (-dy / len) * 0.5;
-  const perpY = (dx / len) * 0.5;
-  const shoulderTicks: SeamLine[] = [];
-  for (const t of [0.25, 0.45]) {
-    const px = kp.neckHalf + t * dx;
-    const py = kp.shoulderY + t * dy;
-    shoulderTicks.push({ x1: -(px - perpX), y1: py - perpY, x2: -(px + perpX), y2: py + perpY });
-    shoulderTicks.push({ x1: px - perpX, y1: py - perpY, x2: px + perpX, y2: py + perpY });
-  }
-
-  return { collarPath, hemLine, cuffLines, shoulderTicks };
 }
 
 /**
