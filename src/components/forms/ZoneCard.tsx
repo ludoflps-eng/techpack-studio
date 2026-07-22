@@ -266,7 +266,7 @@ export function ZoneCard({
               </Select>
             </Field>
             {zone.align === 'center' ? (
-              <Field label="Offset from centerline (cm)">
+              <Field label="Offset from Guide A (cm)">
                 <NumberInput
                   value={zone.centerOffsetCm}
                   onChange={(e) => onChange({ centerOffsetCm: Number(e.target.value) })}
