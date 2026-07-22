@@ -89,11 +89,11 @@ const TEMPLATES: Record<Face, ImageCalibration> = {
   back: {
     href: '/back-template.png',
     fillMaskHref: '/back-template-fillmask.png',
-    naturalWidth: 429,
-    naturalHeight: 322,
-    centerX: 214.5,
-    collarY: 58,
-    underarmDX: 125.5,
+    naturalWidth: 358,
+    naturalHeight: 256,
+    centerX: 174.5,
+    collarY: 15,
+    underarmDX: 99.5,
   },
 };
 
