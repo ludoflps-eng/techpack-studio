@@ -206,6 +206,15 @@ export function ZoneCard({
                 <option value="collar">Top of Shirt</option>
                 <option value="hem">Hem (bottom up)</option>
               </Select>
+              <label className="mt-2 flex items-center gap-2 text-sm text-neutral-700">
+                <input
+                  type="checkbox"
+                  checked={zone.showGuide}
+                  onChange={(e) => onChange({ showGuide: e.target.checked })}
+                  className="h-4 w-4 accent-rose-600"
+                />
+                Show guides
+              </label>
             </Field>
             <Field label={`Distance from ${zone.anchorV === 'collar' ? 'top of shirt' : 'hem'} (cm)`}>
               <NumberInput

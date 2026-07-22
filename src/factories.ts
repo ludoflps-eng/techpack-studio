@@ -31,6 +31,7 @@ export function createZone(face: Face, order: number): PrintZone {
     heightCm: 10,
     anchorV: 'collar',
     distanceVCm: 14,
+    showGuide: false,
     align: 'center',
     edgeMarginCm: 3,
     centerOffsetCm: 0,

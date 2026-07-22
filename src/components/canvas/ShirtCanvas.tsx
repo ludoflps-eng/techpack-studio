@@ -1,6 +1,7 @@
-import { useId } from 'react';
+import { Fragment, useId } from 'react';
 import type { Face, GarmentSpec, PrintZone } from '../../types';
-import { canvasSize, templateFillMaskImage, templateImage, zoneRect } from '../../lib/geometry';
+import { canvasSize, templateFillMaskImage, templateImage, zoneRect, type ZoneRect } from '../../lib/geometry';
+import { guideATopLocalY } from '../../lib/measurementGuides';
 import { ZonePrint } from './ZonePrint';
 import { MeasurementGuideOverlay } from './MeasurementGuideOverlay';
 
@@ -55,13 +56,17 @@ export function ShirtCanvas({
         {faceZones.map((zone) => {
           const rect = zoneRect(zone, garment);
           return (
-            <ZonePrint
-              key={zone.id}
-              zone={zone}
-              rect={rect}
-              selected={selectedZoneId === zone.id}
-              onSelect={onSelectZone ? () => onSelectZone(zone.id) : undefined}
-            />
+            <Fragment key={zone.id}>
+              <ZonePrint
+                zone={zone}
+                rect={rect}
+                selected={selectedZoneId === zone.id}
+                onSelect={onSelectZone ? () => onSelectZone(zone.id) : undefined}
+              />
+              {zone.showGuide && (
+                <ZoneReferenceGuide zone={zone} rect={rect} garment={garment} face={face} />
+              )}
+            </Fragment>
           );
         })}
 
@@ -75,5 +80,36 @@ export function ShirtCanvas({
         )}
       </g>
     </svg>
+  );
+}
+
+function ZoneReferenceGuide({
+  zone,
+  rect,
+  garment,
+  face,
+}: {
+  zone: PrintZone;
+  rect: ZoneRect;
+  garment: GarmentSpec;
+  face: Face;
+}) {
+  const centerX = rect.x + rect.width / 2;
+  const isFromTop = zone.anchorV === 'collar';
+  const anchorY = isFromTop ? guideATopLocalY(face, garment.chestWidthCm) : garment.bodyLengthCm;
+  const zoneEdgeY = isFromTop ? rect.y : rect.y + rect.height;
+  const [y1, y2] = isFromTop ? [anchorY, zoneEdgeY] : [zoneEdgeY, anchorY];
+
+  return (
+    <line
+      x1={centerX}
+      y1={y1}
+      x2={centerX}
+      y2={y2}
+      stroke="#6b7280"
+      strokeWidth={0.2}
+      strokeDasharray="0.8,0.8"
+      pointerEvents="none"
+    />
   );
 }
