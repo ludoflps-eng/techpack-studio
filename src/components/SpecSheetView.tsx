@@ -18,7 +18,6 @@ function zoneSpecRows(zone: PrintZone, garment: GarmentSpec, referenceSize: stri
     ['Position', positionLabel(zone, garment, referenceSize)],
     ['Alignment', alignmentLabel(zone, garment, referenceSize)],
     ...(zone.symbolNote ? ([['Symbol note', zone.symbolNote]] as [string, string][]) : []),
-    ['Technique', techniqueLabel(zone)],
     ...(zone.notes ? ([['Notes', zone.notes]] as [string, string][]) : []),
   ];
 }
@@ -106,12 +105,13 @@ export function SpecSheetView({ pack }: { pack: TechPack }) {
         )}
 
         <SpecTable
-          title="Colors & fabric"
+          title="Colors, fabric & technique"
           rows={[
             ['Ink colors used', inks.length ? inks.map((i) => `${i.colorName}${i.pantone ? ` (Pantone ${i.pantone})` : ''}`).join(', ') : '—'],
             ['Number of inks', String(inks.length)],
             ['Fabric color', `${pack.garment.fabricColorName}${pack.garment.fabricPantone ? ` — Pantone ${pack.garment.fabricPantone}` : ''}`],
             ['Fabric composition', pack.garment.fabricComposition || '—'],
+            ['Print technique', techniqueLabel(pack.garment)],
           ]}
         />
 

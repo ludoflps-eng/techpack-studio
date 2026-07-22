@@ -1,4 +1,4 @@
-import type { GarmentSpec } from '../../types';
+import { PRINT_TECHNIQUE_LABELS, type GarmentSpec } from '../../types';
 import { Field, Select, TextInput, Textarea } from '../ui/Field';
 import { GARMENT_STYLE_OPTIONS, isGarmentStyle } from '../../lib/garmentStyles';
 import { SIZE_OPTIONS, isSizeLabel, type SizeLabel } from '../../lib/sizeChart';
@@ -95,6 +95,29 @@ export function GarmentForm({
           onChange={(e) => onChange({ fabricComposition: e.target.value })}
         />
       </Field>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Technique">
+          <Select
+            value={garment.technique}
+            onChange={(e) => onChange({ technique: e.target.value as GarmentSpec['technique'] })}
+          >
+            {Object.entries(PRINT_TECHNIQUE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        {garment.technique === 'other' && (
+          <Field label="Technique (specify)">
+            <TextInput
+              value={garment.techniqueOther}
+              onChange={(e) => onChange({ techniqueOther: e.target.value })}
+            />
+          </Field>
+        )}
+      </div>
     </div>
   );
 }

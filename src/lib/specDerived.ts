@@ -25,8 +25,16 @@ export function alignmentLabel(zone: PrintZone, garment: GarmentSpec, referenceS
   return `Aligned right, ${(halfChest - (rect.x + rect.width)).toFixed(1)} cm margin`;
 }
 
-export function techniqueLabel(zone: PrintZone): string {
-  return zone.technique === 'other' && zone.techniqueOther ? zone.techniqueOther : PRINT_TECHNIQUE_LABELS[zone.technique];
+/** The garment-level print technique, phrased for the spec sheet — "Serigraphy Front & Back" gets
+ *  a sentence spelling out that it covers both faces, since it's the one technique that isn't
+ *  self-evidently per-zone. */
+export function techniqueLabel(garment: GarmentSpec): string {
+  if (garment.technique === 'serigraphy-both') {
+    return 'Serigraphy technique to be used for both front & back of the tee shirt';
+  }
+  return garment.technique === 'other' && garment.techniqueOther
+    ? garment.techniqueOther
+    : PRINT_TECHNIQUE_LABELS[garment.technique];
 }
 
 export interface InkSummary {

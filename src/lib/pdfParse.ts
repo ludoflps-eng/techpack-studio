@@ -145,7 +145,7 @@ function matchLineSpacing(value: string | null): 'normal' | 'tight' {
 }
 
 function matchTechnique(value: string | null): { technique: PrintTechnique; techniqueOther: string } {
-  if (!value) return { technique: 'screen-print', techniqueOther: '' };
+  if (!value) return { technique: 'serigraphy-both', techniqueOther: '' };
   if (/s[ée]rigraphie|screen.?print/i.test(value)) return { technique: 'screen-print', techniqueOther: '' };
   if (/\bdtg\b|direct.to.garment/i.test(value)) return { technique: 'dtg', techniqueOther: '' };
   if (/broderie|embroidery/i.test(value)) return { technique: 'embroidery', techniqueOther: '' };
@@ -418,9 +418,11 @@ export function parseTechPackFromLines(rawLines: string[]): PdfParseResult {
         }
 
         const techniqueRaw = extractAfterLabel(block, ['technique']);
-        const { technique, techniqueOther } = matchTechnique(techniqueRaw);
-        zone.technique = technique;
-        zone.techniqueOther = techniqueOther;
+        if (techniqueRaw) {
+          const { technique, techniqueOther } = matchTechnique(techniqueRaw);
+          pack.garment.technique = technique;
+          pack.garment.techniqueOther = techniqueOther;
+        }
 
         zone.symbolNote = extractAfterLabel(block, ['symbol note', 'symbole']) ?? '';
         zone.notes = extractAfterLabel(block, ['notes']) ?? '';

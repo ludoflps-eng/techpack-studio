@@ -9,6 +9,7 @@ export type TextCase = 'none' | 'uppercase' | 'lowercase';
 export type LineSpacing = 'normal' | 'tight';
 
 export type PrintTechnique =
+  | 'serigraphy-both'
   | 'screen-print'
   | 'dtg'
   | 'embroidery'
@@ -18,6 +19,7 @@ export type PrintTechnique =
   | 'other';
 
 export const PRINT_TECHNIQUE_LABELS: Record<PrintTechnique, string> = {
+  'serigraphy-both': 'Serigraphy Front & Back',
   'screen-print': 'Screen print',
   dtg: 'DTG (direct-to-garment)',
   embroidery: 'Embroidery',
@@ -55,8 +57,6 @@ export interface PrintZone {
   edgeMarginCm: number;
   /** Used when align is 'center': horizontal offset in cm from the garment centerline (positive = right). */
   centerOffsetCm: number;
-  technique: PrintTechnique;
-  techniqueOther: string;
   symbolNote: string;
   notes: string;
 }
@@ -69,6 +69,9 @@ export interface GarmentSpec {
   fabricPantone: string;
   fabricHex: string;
   fabricComposition: string;
+  /** Print technique used for the whole tech pack — a garment-level spec, not per-zone. */
+  technique: PrintTechnique;
+  techniqueOther: string;
 }
 
 export interface TechPack {

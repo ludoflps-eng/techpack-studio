@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   FONT_OPTIONS,
-  PRINT_TECHNIQUE_LABELS,
   type GarmentSpec,
   type PrintZone,
 } from '../../types';
@@ -277,29 +276,6 @@ export function ZoneCard({
                 <NumberInput
                   value={zone.edgeMarginCm}
                   onChange={(e) => onChange({ edgeMarginCm: Number(e.target.value) })}
-                />
-              </Field>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Technique">
-              <Select
-                value={zone.technique}
-                onChange={(e) => onChange({ technique: e.target.value as PrintZone['technique'] })}
-              >
-                {Object.entries(PRINT_TECHNIQUE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            {zone.technique === 'other' && (
-              <Field label="Technique (specify)">
-                <TextInput
-                  value={zone.techniqueOther}
-                  onChange={(e) => onChange({ techniqueOther: e.target.value })}
                 />
               </Field>
             )}

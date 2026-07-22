@@ -11,6 +11,8 @@ export function createGarmentDefaults(): GarmentSpec {
     fabricPantone: '',
     fabricHex: '#f5f5f0',
     fabricComposition: '100% cotton, 180gsm',
+    technique: 'serigraphy-both',
+    techniqueOther: '',
   };
 }
 
@@ -37,8 +39,6 @@ export function createZone(face: Face, order: number): PrintZone {
     align: 'center',
     edgeMarginCm: 3,
     centerOffsetCm: 0,
-    technique: 'screen-print',
-    techniqueOther: '',
     symbolNote: '',
     notes: '',
   };
