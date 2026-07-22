@@ -66,13 +66,16 @@ export function ShirtCanvas({
                 onSelect={onSelectZone ? () => onSelectZone(zone.id) : undefined}
               />
               {zone.showGuide && (
-                <ZoneReferenceGuide
-                  zone={zone}
-                  rect={rect}
-                  garment={garment}
-                  face={face}
-                  referenceSize={effectiveReferenceSize}
-                />
+                <>
+                  <ZoneReferenceGuide
+                    zone={zone}
+                    rect={rect}
+                    garment={garment}
+                    face={face}
+                    referenceSize={effectiveReferenceSize}
+                  />
+                  <ZoneDimensionLabels rect={rect} />
+                </>
               )}
             </Fragment>
           );
@@ -88,6 +91,23 @@ export function ShirtCanvas({
         )}
       </g>
     </svg>
+  );
+}
+
+function ZoneDimensionLabels({ rect }: { rect: ZoneRect }) {
+  const fontSize = 2.2;
+  const gap = 1.2;
+  const textHalo = { paintOrder: 'stroke' as const, stroke: 'white', strokeWidth: 0.4, strokeLinejoin: 'round' as const };
+
+  return (
+    <g fontFamily="Inter, sans-serif" fontWeight={600} fontSize={fontSize} fill="#374151">
+      <text x={rect.x + rect.width / 2} y={rect.y + rect.height + gap + fontSize * 0.8} textAnchor="middle" {...textHalo}>
+        {rect.width.toFixed(1)} cm
+      </text>
+      <text x={rect.x - gap} y={rect.y + rect.height / 2} textAnchor="end" dominantBaseline="middle" {...textHalo}>
+        {rect.height.toFixed(1)} cm
+      </text>
+    </g>
   );
 }
 
