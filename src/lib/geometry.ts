@@ -62,6 +62,7 @@ export interface ImagePlacement {
 
 interface ImageCalibration {
   href: string;
+  fillMaskHref: string;
   naturalWidth: number;
   naturalHeight: number;
   centerX: number;
@@ -78,6 +79,7 @@ interface ImageCalibration {
 const TEMPLATES: Record<Face, ImageCalibration> = {
   front: {
     href: '/front-template.png',
+    fillMaskHref: '/front-template-fillmask.png',
     naturalWidth: 419,
     naturalHeight: 318,
     centerX: 209.5,
@@ -86,6 +88,7 @@ const TEMPLATES: Record<Face, ImageCalibration> = {
   },
   back: {
     href: '/back-template.png',
+    fillMaskHref: '/back-template-fillmask.png',
     naturalWidth: 431,
     naturalHeight: 312,
     centerX: 215.5,
@@ -101,16 +104,27 @@ export function templateScale(chestWidthCm: number, face: Face): number {
   return chestWidthCm / 2 / TEMPLATES[face].underarmDX;
 }
 
-export function templateImage(chestWidthCm: number, face: Face): ImagePlacement {
+function placeImage(chestWidthCm: number, face: Face, href: string): ImagePlacement {
   const t = TEMPLATES[face];
   const scale = templateScale(chestWidthCm, face);
   return {
-    href: t.href,
+    href,
     x: -t.centerX * scale,
     y: -t.collarY * scale,
     width: t.naturalWidth * scale,
     height: t.naturalHeight * scale,
   };
+}
+
+export function templateImage(chestWidthCm: number, face: Face): ImagePlacement {
+  return placeImage(chestWidthCm, face, TEMPLATES[face].href);
+}
+
+/** The fill-only mask: white where the garment's plain fabric (recolorable) sits, transparent
+ *  everywhere else (contour outline, grey seam lines, background) — so a color overlay masked by
+ *  this always leaves the outline/seams untouched regardless of the chosen fabric color. */
+export function templateFillMaskImage(chestWidthCm: number, face: Face): ImagePlacement {
+  return placeImage(chestWidthCm, face, TEMPLATES[face].fillMaskHref);
 }
 
 /**

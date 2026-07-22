@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import type { Face, GarmentSpec, PrintZone } from '../../types';
-import { canvasSize, templateImage, zoneRect } from '../../lib/geometry';
+import { canvasSize, templateFillMaskImage, templateImage, zoneRect } from '../../lib/geometry';
 import { ZonePrint } from './ZonePrint';
 import { MeasurementGuideOverlay } from './MeasurementGuideOverlay';
 
@@ -26,6 +26,7 @@ export function ShirtCanvas({
   const { width, height, originX, originY } = canvasSize(garment);
   const faceZones = zones.filter((z) => z.face === face);
   const placement = templateImage(garment.chestWidthCm, face);
+  const fillMaskPlacement = templateFillMaskImage(garment.chestWidthCm, face);
   const maskId = useId();
 
   return (
@@ -36,7 +37,7 @@ export function ShirtCanvas({
         {garment.fabricHex && (
           <>
             <mask id={maskId}>
-              <image {...placement} preserveAspectRatio="none" />
+              <image {...fillMaskPlacement} preserveAspectRatio="none" />
             </mask>
             <rect
               x={placement.x}
