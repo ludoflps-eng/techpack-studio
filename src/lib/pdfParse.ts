@@ -146,7 +146,10 @@ function matchLineSpacing(value: string | null): 'normal' | 'tight' {
 
 function matchTechnique(value: string | null): { technique: PrintTechnique; techniqueOther: string } {
   if (!value) return { technique: 'serigraphy-both', techniqueOther: '' };
-  if (/s[ée]rigraphie|screen.?print/i.test(value)) return { technique: 'screen-print', techniqueOther: '' };
+  if (/front\s*(?:&|and)\s*back|recto\s*(?:&|et)\s*verso/i.test(value)) {
+    return { technique: 'serigraphy-both', techniqueOther: '' };
+  }
+  if (/s[ée]rigraph(?:ie|y)|screen.?print/i.test(value)) return { technique: 'screen-print', techniqueOther: '' };
   if (/\bdtg\b|direct.to.garment/i.test(value)) return { technique: 'dtg', techniqueOther: '' };
   if (/broderie|embroidery/i.test(value)) return { technique: 'embroidery', techniqueOther: '' };
   if (/vinyle?|flex|vinyl/i.test(value)) return { technique: 'vinyl', techniqueOther: '' };
@@ -194,7 +197,7 @@ interface ZoneSkeleton {
 }
 
 const ROW_RE =
-  /^(front|back|recto|verso)\s+(.+?)\s+([\d.]+)\s*cm[^0-9]*?\b(collar|col|hem|bas)\b\s+([\d.]+)\s*cm\s+([\d.]+)\s*cm\s+(.+)$/i;
+  /^(front|back|recto|verso)\s+(.+?)\s+([\d.]+)\s*cm[^0-9]*?\b(collar|col|hem|bas|top of shirt)\b\s+([\d.]+)\s*cm\s+([\d.]+)\s*cm\s+(.+)$/i;
 
 function parseRecapRows(lines: string[]): ZoneSkeleton[] {
   const skeletons: ZoneSkeleton[] = [];
@@ -315,7 +318,11 @@ export function parseTechPackFromLines(rawLines: string[]): PdfParseResult {
 
   // Locate every major section marker up front (fuzzy — tolerates letter-spaced headings).
   const specIdx = findFuzzyLineIndex(cleanLines, ['technical specifications', 'specifications techniques']);
-  const fabricIdx = findFuzzyLineIndex(cleanLines, ['colors & fabric', 'couleurs & tissu']);
+  const fabricIdx = findFuzzyLineIndex(cleanLines, [
+    'colors, fabric & technique',
+    'colors & fabric',
+    'couleurs & tissu',
+  ]);
   const notesIdx = findFuzzyLineIndex(cleanLines, ['production notes', 'notes de production']);
   const recapIdx = findFuzzyLineIndex(cleanLines, ['recapitulatif', 'recap']);
 
@@ -348,6 +355,22 @@ export function parseTechPackFromLines(rawLines: string[]): PdfParseResult {
   }
   const compositionRaw = extractAfterLabel(fabricBlob, ['fabric composition', 'type de tissu']);
   if (compositionRaw) pack.garment.fabricComposition = compositionRaw;
+  // Not extractAfterLabel: its generic stop-word list includes "technique" itself, which would
+  // truncate a value like "Serigraphy technique to be used for both front & back..." right after
+  // the first word. The fabric section is already bounded to end before the next section marker,
+  // so it's safe to just take everything after the label to the end of this blob.
+  const techniqueLabelIdx = fabricBlob.toLowerCase().indexOf('print technique');
+  if (techniqueLabelIdx !== -1) {
+    const garmentTechniqueRaw = fabricBlob
+      .slice(techniqueLabelIdx + 'print technique'.length)
+      .trim()
+      .replace(/^[:\-–—"'\s]+/, '');
+    if (garmentTechniqueRaw) {
+      const { technique, techniqueOther } = matchTechnique(garmentTechniqueRaw);
+      pack.garment.technique = technique;
+      pack.garment.techniqueOther = techniqueOther;
+    }
+  }
 
   // Production notes section
   if (notesIdx >= 0) {
