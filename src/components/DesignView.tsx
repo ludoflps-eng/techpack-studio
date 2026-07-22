@@ -5,7 +5,7 @@ import { ShirtCanvas } from './canvas/ShirtCanvas';
 import { GarmentForm } from './forms/GarmentForm';
 import { ZoneList } from './forms/ZoneList';
 import { NotesForm } from './forms/NotesForm';
-import { MeasurementGuideControl } from './forms/MeasurementGuideControl';
+import { MeasurementGuideControl, POINTS as MEASUREMENT_POINTS } from './forms/MeasurementGuideControl';
 
 type Section = 'garment' | 'front' | 'back' | 'notes';
 
@@ -14,7 +14,7 @@ export function DesignView({ pack }: { pack: TechPack }) {
   const [section, setSection] = useState<Section>('front');
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [guidesEnabled, setGuidesEnabled] = useState(false);
-  const [selectedPoints, setSelectedPoints] = useState<string[]>([]);
+  const [selectedPoints, setSelectedPoints] = useState<string[]>(MEASUREMENT_POINTS);
 
   const tabs: { id: Section; label: string }[] = [
     { id: 'garment', label: 'Garment & fabric' },
