@@ -1,6 +1,6 @@
 import { PRINT_TECHNIQUE_LABELS, type GarmentSpec, type PrintZone } from '../types';
 import { zoneRect } from './geometry';
-import { guideATopLocalY } from './measurementGuides';
+import { guideABottomLocalY, guideATopLocalY } from './measurementGuides';
 
 export function positionLabel(zone: PrintZone, garment: GarmentSpec): string {
   const rect = zoneRect(zone, garment);
@@ -8,7 +8,7 @@ export function positionLabel(zone: PrintZone, garment: GarmentSpec): string {
   const distance =
     zone.anchorV === 'collar'
       ? rect.y - guideATopLocalY(zone.face, garment.chestWidthCm)
-      : garment.bodyLengthCm - (rect.y + rect.height);
+      : guideABottomLocalY(zone.face, garment.chestWidthCm) - (rect.y + rect.height);
   return `${distance.toFixed(1)} cm ${anchor}`;
 }
 
