@@ -1,5 +1,6 @@
 import type { Face } from '../types';
 import { OVERSIZE_CHART, OVERSIZE_SIZES } from './oversizeChart';
+import { templateScale } from './geometry';
 
 export type GuideOrientation = 'horizontal' | 'vertical';
 
@@ -44,6 +45,15 @@ export const MEASUREMENT_GUIDES: Partial<Record<string, GuideDef[]>> = {
   E: [{ orientation: 'horizontal', face: 'front', color: '#f97316', imgDY: 150, imgHalfWidth: 125.5 }],
   F: [{ orientation: 'horizontal', face: 'front', color: '#9333ea', imgDY: 224, imgHalfWidth: 125.5 }],
 };
+
+/** The "Top of Shirt" reference point for print-zone placement: the local-cm y-coordinate of
+ *  guide A's top endpoint (the highest point of the shoulder) on the given face, so "measured
+ *  from top of shirt" anchors to the same point the A guide line touches. */
+export function guideATopLocalY(face: Face, chestWidthCm: number): number {
+  const def = MEASUREMENT_GUIDES.A?.find((d) => d.face === face);
+  if (!def || def.orientation !== 'vertical') return 0;
+  return def.imgDYTop * templateScale(chestWidthCm, face);
+}
 
 /** Looks up the cm value for a measurement point at the given reference size, from the same
  *  chart shown on the Input tab. */

@@ -203,11 +203,11 @@ export function ZoneCard({
                 value={zone.anchorV}
                 onChange={(e) => onChange({ anchorV: e.target.value as PrintZone['anchorV'] })}
               >
-                <option value="collar">Collar (top down)</option>
+                <option value="collar">Top of Shirt</option>
                 <option value="hem">Hem (bottom up)</option>
               </Select>
             </Field>
-            <Field label={`Distance from ${zone.anchorV} (cm)`}>
+            <Field label={`Distance from ${zone.anchorV === 'collar' ? 'top of shirt' : 'hem'} (cm)`}>
               <NumberInput
                 value={zone.distanceVCm}
                 onChange={(e) => onChange({ distanceVCm: Number(e.target.value) })}

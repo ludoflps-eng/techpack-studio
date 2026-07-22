@@ -1,4 +1,5 @@
 import type { Face, GarmentSpec, PrintZone } from '../types';
+import { guideATopLocalY } from './measurementGuides';
 
 /**
  * All measurements are in a "garment-local" coordinate space, in centimeters:
@@ -150,7 +151,7 @@ function rawZoneRect(zone: PrintZone, garment: GarmentSpec): ZoneRect {
 
   const y =
     zone.anchorV === 'collar'
-      ? zone.distanceVCm
+      ? guideATopLocalY(zone.face, garment.chestWidthCm) + zone.distanceVCm
       : garment.bodyLengthCm - zone.distanceVCm - zone.heightCm;
 
   let x: number;

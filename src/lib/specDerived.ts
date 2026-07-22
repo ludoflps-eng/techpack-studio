@@ -1,10 +1,14 @@
 import { PRINT_TECHNIQUE_LABELS, type GarmentSpec, type PrintZone } from '../types';
 import { zoneRect } from './geometry';
+import { guideATopLocalY } from './measurementGuides';
 
 export function positionLabel(zone: PrintZone, garment: GarmentSpec): string {
   const rect = zoneRect(zone, garment);
-  const anchor = zone.anchorV === 'collar' ? 'from collar' : 'from hem';
-  const distance = zone.anchorV === 'collar' ? rect.y : garment.bodyLengthCm - (rect.y + rect.height);
+  const anchor = zone.anchorV === 'collar' ? 'from top of shirt' : 'from hem';
+  const distance =
+    zone.anchorV === 'collar'
+      ? rect.y - guideATopLocalY(zone.face, garment.chestWidthCm)
+      : garment.bodyLengthCm - (rect.y + rect.height);
   return `${distance.toFixed(1)} cm ${anchor}`;
 }
 
