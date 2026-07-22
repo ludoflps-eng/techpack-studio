@@ -30,10 +30,12 @@ export function MeasurementGuideOverlay({
           const x = def.imgDX * scale;
           const y1 = def.imgDYTop * scale;
           const y2 = def.imgDYBottom * scale;
+          const midY = (y1 + y2) / 2;
           return (
             <g key={point}>
               <line x1={x} y1={y1} x2={x} y2={y2} stroke={def.color} strokeWidth={0.3} />
-              <text x={x + 1.2} y={(y1 + y2) / 2} fill={def.color} {...textHalo}>
+              <circle cx={x} cy={midY} r={0.7} fill="#000000" />
+              <text x={x + 1.2} y={midY} fill={def.color} {...textHalo}>
                 {label}
               </text>
             </g>
