@@ -35,7 +35,7 @@ export const MEASUREMENT_GUIDES: Partial<Record<string, GuideDef>> = {
   B: { orientation: 'horizontal', face: 'front', color: '#dc2626', imgDY: 1, imgHalfWidth: 125.5 },
   D: { orientation: 'horizontal', face: 'front', color: '#2563eb', imgDY: 70, imgHalfWidth: 125.5 },
   E: { orientation: 'horizontal', face: 'front', color: '#f97316', imgDY: 150, imgHalfWidth: 125.5 },
-  F: { orientation: 'horizontal', face: 'front', color: '#9333ea', imgDY: 244, imgHalfWidth: 125.5 },
+  F: { orientation: 'horizontal', face: 'front', color: '#9333ea', imgDY: 224, imgHalfWidth: 125.5 },
 };
 
 /** Looks up the cm value for a measurement point at the given reference size, from the same
