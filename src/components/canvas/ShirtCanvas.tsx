@@ -26,10 +26,10 @@ export function ShirtCanvas({
 }) {
   const { width, height, originX, originY } = canvasSize(garment);
   const faceZones = zones.filter((z) => z.face === face);
-  const placement = templateImage(garment.chestWidthCm, face);
-  const fillMaskPlacement = templateFillMaskImage(garment.chestWidthCm, face);
-  const maskId = useId();
   const effectiveReferenceSize = referenceSize ?? 'M';
+  const placement = templateImage(garment.chestWidthCm, face, effectiveReferenceSize);
+  const fillMaskPlacement = templateFillMaskImage(garment.chestWidthCm, face, effectiveReferenceSize);
+  const maskId = useId();
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto select-none">

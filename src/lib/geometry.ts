@@ -105,7 +105,7 @@ export function templateScale(chestWidthCm: number, face: Face): number {
   return chestWidthCm / 2 / TEMPLATES[face].underarmDX;
 }
 
-function placeImage(chestWidthCm: number, face: Face, href: string): ImagePlacement {
+function placeImage(chestWidthCm: number, face: Face, href: string, height: number): ImagePlacement {
   const t = TEMPLATES[face];
   const scale = templateScale(chestWidthCm, face);
   return {
@@ -113,19 +113,32 @@ function placeImage(chestWidthCm: number, face: Face, href: string): ImagePlacem
     x: -t.centerX * scale,
     y: -t.collarY * scale,
     width: t.naturalWidth * scale,
-    height: t.naturalHeight * scale,
+    height,
   };
 }
 
-export function templateImage(chestWidthCm: number, face: Face): ImagePlacement {
-  return placeImage(chestWidthCm, face, TEMPLATES[face].href);
+/** The image's natural pixel height, stretched (never shrunk) so its bottom edge reaches guide
+ *  A's chart-based bottom point — otherwise the guide line extends past the artwork whenever the
+ *  chart value is longer than the reference image's own drawn proportions. */
+function templateImageHeight(chestWidthCm: number, face: Face, referenceSize: string): number {
+  const t = TEMPLATES[face];
+  const scale = templateScale(chestWidthCm, face);
+  const topY = -t.collarY * scale;
+  const bottomY = guideABottomLocalY(face, chestWidthCm, referenceSize);
+  return Math.max(bottomY - topY, t.naturalHeight * scale);
+}
+
+export function templateImage(chestWidthCm: number, face: Face, referenceSize: string): ImagePlacement {
+  const height = templateImageHeight(chestWidthCm, face, referenceSize);
+  return placeImage(chestWidthCm, face, TEMPLATES[face].href, height);
 }
 
 /** The fill-only mask: white where the garment's plain fabric (recolorable) sits, transparent
  *  everywhere else (contour outline, grey seam lines, background) — so a color overlay masked by
  *  this always leaves the outline/seams untouched regardless of the chosen fabric color. */
-export function templateFillMaskImage(chestWidthCm: number, face: Face): ImagePlacement {
-  return placeImage(chestWidthCm, face, TEMPLATES[face].fillMaskHref);
+export function templateFillMaskImage(chestWidthCm: number, face: Face, referenceSize: string): ImagePlacement {
+  const height = templateImageHeight(chestWidthCm, face, referenceSize);
+  return placeImage(chestWidthCm, face, TEMPLATES[face].fillMaskHref, height);
 }
 
 /**
