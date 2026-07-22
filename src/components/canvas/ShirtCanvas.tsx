@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { Face, GarmentSpec, PrintZone } from '../../types';
 import { canvasSize, templateImage, zoneRect } from '../../lib/geometry';
 import { ZonePrint } from './ZonePrint';
@@ -24,11 +25,31 @@ export function ShirtCanvas({
 }) {
   const { width, height, originX, originY } = canvasSize(garment);
   const faceZones = zones.filter((z) => z.face === face);
+  const placement = templateImage(garment.chestWidthCm, face);
+  const maskId = useId();
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto select-none">
       <g transform={`translate(${originX} ${originY})`}>
-        <image {...templateImage(garment.chestWidthCm, face)} preserveAspectRatio="none" />
+        <image {...placement} preserveAspectRatio="none" />
+
+        {garment.fabricHex && (
+          <>
+            <mask id={maskId}>
+              <image {...placement} preserveAspectRatio="none" />
+            </mask>
+            <rect
+              x={placement.x}
+              y={placement.y}
+              width={placement.width}
+              height={placement.height}
+              fill={garment.fabricHex}
+              mask={`url(#${maskId})`}
+              style={{ mixBlendMode: 'multiply' }}
+              pointerEvents="none"
+            />
+          </>
+        )}
 
         {faceZones.map((zone) => {
           const rect = zoneRect(zone, garment);
