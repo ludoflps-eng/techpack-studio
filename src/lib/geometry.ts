@@ -146,14 +146,14 @@ export interface ZoneRect {
   height: number;
 }
 
-function rawZoneRect(zone: PrintZone, garment: GarmentSpec): ZoneRect {
+function rawZoneRect(zone: PrintZone, garment: GarmentSpec, referenceSize: string): ZoneRect {
   const halfChest = garment.chestWidthCm / 2;
 
   const y = zone.centerBox
-    ? guideAMidLocalY(zone.face, garment.chestWidthCm) - zone.heightCm / 2
+    ? guideAMidLocalY(zone.face, garment.chestWidthCm, referenceSize) - zone.heightCm / 2
     : zone.anchorV === 'collar'
       ? guideATopLocalY(zone.face, garment.chestWidthCm) + zone.distanceVCm
-      : guideABottomLocalY(zone.face, garment.chestWidthCm) - zone.distanceVCm - zone.heightCm;
+      : guideABottomLocalY(zone.face, garment.chestWidthCm, referenceSize) - zone.distanceVCm - zone.heightCm;
 
   let x: number;
   if (zone.align === 'left') {
@@ -171,8 +171,8 @@ function rawZoneRect(zone: PrintZone, garment: GarmentSpec): ZoneRect {
  * The zone's box, scaled down (preserving aspect ratio) and repositioned so it always lands
  * fully within `safeArea` — print boxes can never spill off the garment.
  */
-export function zoneRect(zone: PrintZone, garment: GarmentSpec): ZoneRect {
-  const raw = rawZoneRect(zone, garment);
+export function zoneRect(zone: PrintZone, garment: GarmentSpec, referenceSize: string): ZoneRect {
+  const raw = rawZoneRect(zone, garment, referenceSize);
   const { minX, maxX, minY, maxY } = safeArea(garment);
   const safeWidth = maxX - minX;
   const safeHeight = maxY - minY;

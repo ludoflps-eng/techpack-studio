@@ -5,6 +5,7 @@ export function ZoneList({
   face,
   zones,
   garment,
+  referenceSize,
   selectedZoneId,
   onSelectZone,
   onChangeZone,
@@ -15,6 +16,7 @@ export function ZoneList({
   face: Face;
   zones: PrintZone[];
   garment: GarmentSpec;
+  referenceSize: string;
   selectedZoneId: string | null;
   onSelectZone: (id: string) => void;
   onChangeZone: (id: string, patch: Partial<PrintZone>) => void;
@@ -31,6 +33,7 @@ export function ZoneList({
           key={zone.id}
           zone={zone}
           garment={garment}
+          referenceSize={referenceSize}
           selected={selectedZoneId === zone.id}
           onSelect={() => onSelectZone(zone.id)}
           onChange={(patch) => onChangeZone(zone.id, patch)}

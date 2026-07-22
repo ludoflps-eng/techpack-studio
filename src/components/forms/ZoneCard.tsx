@@ -13,6 +13,7 @@ import { lookupPantone } from '../../lib/pantone';
 export function ZoneCard({
   zone,
   garment,
+  referenceSize,
   selected,
   onSelect,
   onChange,
@@ -23,6 +24,7 @@ export function ZoneCard({
 }: {
   zone: PrintZone;
   garment: GarmentSpec;
+  referenceSize: string;
   selected: boolean;
   onSelect: () => void;
   onChange: (patch: Partial<PrintZone>) => void;
@@ -32,7 +34,7 @@ export function ZoneCard({
   canMoveDown: boolean;
 }) {
   const [open, setOpen] = useState(selected);
-  const fitted = zoneRect(zone, garment);
+  const fitted = zoneRect(zone, garment, referenceSize);
   const isClamped =
     Math.abs(fitted.width - zone.widthCm) > 0.05 || Math.abs(fitted.height - zone.heightCm) > 0.05;
   const inkMatch = lookupPantone(zone.pantone);
@@ -40,7 +42,7 @@ export function ZoneCard({
   const derivedDistanceVCm =
     zone.anchorV === 'collar'
       ? fitted.y - guideATopLocalY(zone.face, garment.chestWidthCm)
-      : guideABottomLocalY(zone.face, garment.chestWidthCm) - (fitted.y + fitted.height);
+      : guideABottomLocalY(zone.face, garment.chestWidthCm, referenceSize) - (fitted.y + fitted.height);
 
   return (
     <div

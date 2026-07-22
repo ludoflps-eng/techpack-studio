@@ -29,6 +29,7 @@ export function ShirtCanvas({
   const placement = templateImage(garment.chestWidthCm, face);
   const fillMaskPlacement = templateFillMaskImage(garment.chestWidthCm, face);
   const maskId = useId();
+  const effectiveReferenceSize = referenceSize ?? 'M';
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto select-none">
@@ -54,7 +55,7 @@ export function ShirtCanvas({
         )}
 
         {faceZones.map((zone) => {
-          const rect = zoneRect(zone, garment);
+          const rect = zoneRect(zone, garment, effectiveReferenceSize);
           return (
             <Fragment key={zone.id}>
               <ZonePrint
@@ -64,7 +65,13 @@ export function ShirtCanvas({
                 onSelect={onSelectZone ? () => onSelectZone(zone.id) : undefined}
               />
               {zone.showGuide && (
-                <ZoneReferenceGuide zone={zone} rect={rect} garment={garment} face={face} />
+                <ZoneReferenceGuide
+                  zone={zone}
+                  rect={rect}
+                  garment={garment}
+                  face={face}
+                  referenceSize={effectiveReferenceSize}
+                />
               )}
             </Fragment>
           );
@@ -74,7 +81,7 @@ export function ShirtCanvas({
           <MeasurementGuideOverlay
             face={face}
             garment={garment}
-            referenceSize={referenceSize ?? 'M'}
+            referenceSize={effectiveReferenceSize}
             selectedPoints={selectedPoints}
           />
         )}
@@ -88,17 +95,19 @@ function ZoneReferenceGuide({
   rect,
   garment,
   face,
+  referenceSize,
 }: {
   zone: PrintZone;
   rect: ZoneRect;
   garment: GarmentSpec;
   face: Face;
+  referenceSize: string;
 }) {
   const centerX = rect.x + rect.width / 2;
   const isFromTop = zone.anchorV === 'collar';
   const anchorY = isFromTop
     ? guideATopLocalY(face, garment.chestWidthCm)
-    : guideABottomLocalY(face, garment.chestWidthCm);
+    : guideABottomLocalY(face, garment.chestWidthCm, referenceSize);
   const zoneEdgeY = isFromTop ? rect.y : rect.y + rect.height;
   const [y1, y2] = isFromTop ? [anchorY, zoneEdgeY] : [zoneEdgeY, anchorY];
 

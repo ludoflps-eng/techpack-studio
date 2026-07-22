@@ -46,6 +46,23 @@ export const MEASUREMENT_GUIDES: Partial<Record<string, GuideDef[]>> = {
   F: [{ orientation: 'horizontal', face: 'front', color: '#9333ea', imgDY: 224, imgHalfWidth: 125.5 }],
 };
 
+/** Looks up the cm value for a measurement point at the given reference size, from the same
+ *  chart shown on the Input tab. */
+export function guideValueCm(point: string, referenceSize: string): string | null {
+  const row = OVERSIZE_CHART.find((r) => r.point === point);
+  if (!row) return null;
+  const idx = OVERSIZE_SIZES.indexOf(referenceSize as (typeof OVERSIZE_SIZES)[number]);
+  if (idx === -1) return null;
+  return row.values[idx] ?? null;
+}
+
+function guideValueNumber(point: string, referenceSize: string): number | null {
+  const raw = guideValueCm(point, referenceSize);
+  if (!raw) return null;
+  const parsed = Number(raw.replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 /** The "Top of Shirt" reference point for print-zone placement: the local-cm y-coordinate of
  *  guide A's top endpoint (the highest point of the shoulder) on the given face, so "measured
  *  from top of shirt" anchors to the same point the A guide line touches. */
@@ -55,27 +72,21 @@ export function guideATopLocalY(face: Face, chestWidthCm: number): number {
   return def.imgDYTop * templateScale(chestWidthCm, face);
 }
 
-/** The local-cm y-coordinate of guide A's bottom endpoint (the hem edge it touches) on the
- *  given face — used so a "from hem" reference guide starts at the same point the A line does,
- *  rather than the garment spec's bodyLengthCm value. */
-export function guideABottomLocalY(face: Face, chestWidthCm: number): number {
+/** The local-cm y-coordinate of guide A's bottom endpoint on the given face, measured as the
+ *  pixel-accurate top plus point A's actual chart length (the same number shown on the "A — Ncm"
+ *  label) — not the reference image's own raw pixel span, which doesn't match the chart value
+ *  (the artwork isn't drawn perfectly to scale). Falls back to the raw pixel span only if the
+ *  reference size has no chart entry. */
+export function guideABottomLocalY(face: Face, chestWidthCm: number, referenceSize: string): number {
   const def = MEASUREMENT_GUIDES.A?.find((d) => d.face === face);
   if (!def || def.orientation !== 'vertical') return 0;
+  const chartLength = guideValueNumber('A', referenceSize);
+  if (chartLength !== null) return guideATopLocalY(face, chestWidthCm) + chartLength;
   return def.imgDYBottom * templateScale(chestWidthCm, face);
 }
 
 /** The local-cm y-coordinate of guide A's midpoint (mid-distance of the total garment length) on
  *  the given face — the same point the black dot on the A line marks. */
-export function guideAMidLocalY(face: Face, chestWidthCm: number): number {
-  return (guideATopLocalY(face, chestWidthCm) + guideABottomLocalY(face, chestWidthCm)) / 2;
-}
-
-/** Looks up the cm value for a measurement point at the given reference size, from the same
- *  chart shown on the Input tab. */
-export function guideValueCm(point: string, referenceSize: string): string | null {
-  const row = OVERSIZE_CHART.find((r) => r.point === point);
-  if (!row) return null;
-  const idx = OVERSIZE_SIZES.indexOf(referenceSize as (typeof OVERSIZE_SIZES)[number]);
-  if (idx === -1) return null;
-  return row.values[idx] ?? null;
+export function guideAMidLocalY(face: Face, chestWidthCm: number, referenceSize: string): number {
+  return (guideATopLocalY(face, chestWidthCm) + guideABottomLocalY(face, chestWidthCm, referenceSize)) / 2;
 }

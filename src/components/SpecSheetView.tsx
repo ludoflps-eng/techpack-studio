@@ -4,8 +4,8 @@ import { ShirtCanvas } from './canvas/ShirtCanvas';
 import { zoneRect } from '../lib/geometry';
 import { alignmentLabel, positionLabel, techniqueLabel, uniqueInks } from '../lib/specDerived';
 
-function zoneSpecRows(zone: PrintZone, garment: GarmentSpec): [string, string][] {
-  const fitted = zoneRect(zone, garment);
+function zoneSpecRows(zone: PrintZone, garment: GarmentSpec, referenceSize: string): [string, string][] {
+  const fitted = zoneRect(zone, garment, referenceSize);
   return [
     ['Content', zone.content.split('\n').join(' / ') || '—'],
     ['Font', fontCss(zone.font).label],
@@ -15,8 +15,8 @@ function zoneSpecRows(zone: PrintZone, garment: GarmentSpec): [string, string][]
     ['Ink color', `${zone.colorName}${zone.pantone ? ` — Pantone ${zone.pantone}` : ''} (${zone.hex})`],
     ['Print width', `${fitted.width.toFixed(1)} cm`],
     ['Print height', `${fitted.height.toFixed(1)} cm`],
-    ['Position', positionLabel(zone, garment)],
-    ['Alignment', alignmentLabel(zone, garment)],
+    ['Position', positionLabel(zone, garment, referenceSize)],
+    ['Alignment', alignmentLabel(zone, garment, referenceSize)],
     ...(zone.symbolNote ? ([['Symbol note', zone.symbolNote]] as [string, string][]) : []),
     ['Technique', techniqueLabel(zone)],
     ...(zone.notes ? ([['Notes', zone.notes]] as [string, string][]) : []),
@@ -73,13 +73,13 @@ export function SpecSheetView({ pack }: { pack: TechPack }) {
             <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
               Front
             </p>
-            <ShirtCanvas face="front" garment={pack.garment} zones={pack.zones} />
+            <ShirtCanvas face="front" garment={pack.garment} zones={pack.zones} referenceSize={pack.referenceSize} />
           </div>
           <div>
             <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
               Back
             </p>
-            <ShirtCanvas face="back" garment={pack.garment} zones={pack.zones} />
+            <ShirtCanvas face="back" garment={pack.garment} zones={pack.zones} referenceSize={pack.referenceSize} />
           </div>
         </div>
 
@@ -91,7 +91,7 @@ export function SpecSheetView({ pack }: { pack: TechPack }) {
           <div className="mb-2">
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-neutral-500">Front</p>
             {front.map((zone) => (
-              <SpecTable key={zone.id} title={zone.label} rows={zoneSpecRows(zone, pack.garment)} />
+              <SpecTable key={zone.id} title={zone.label} rows={zoneSpecRows(zone, pack.garment, pack.referenceSize)} />
             ))}
           </div>
         )}
@@ -100,7 +100,7 @@ export function SpecSheetView({ pack }: { pack: TechPack }) {
           <div className="mb-2">
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-neutral-500">Back</p>
             {back.map((zone) => (
-              <SpecTable key={zone.id} title={zone.label} rows={zoneSpecRows(zone, pack.garment)} />
+              <SpecTable key={zone.id} title={zone.label} rows={zoneSpecRows(zone, pack.garment, pack.referenceSize)} />
             ))}
           </div>
         )}
@@ -143,15 +143,15 @@ export function SpecSheetView({ pack }: { pack: TechPack }) {
           </thead>
           <tbody>
             {pack.zones.map((zone) => {
-              const fitted = zoneRect(zone, pack.garment);
+              const fitted = zoneRect(zone, pack.garment, pack.referenceSize);
               return (
                 <tr key={zone.id} className="border-t border-neutral-100">
                   <td className="px-3 py-1.5 capitalize text-neutral-800">{zone.face}</td>
                   <td className="px-3 py-1.5 text-neutral-800">{zone.label}</td>
-                  <td className="px-3 py-1.5 text-neutral-800">{positionLabel(zone, pack.garment)}</td>
+                  <td className="px-3 py-1.5 text-neutral-800">{positionLabel(zone, pack.garment, pack.referenceSize)}</td>
                   <td className="px-3 py-1.5 text-neutral-800">{fitted.width.toFixed(1)} cm</td>
                   <td className="px-3 py-1.5 text-neutral-800">{fitted.height.toFixed(1)} cm</td>
-                  <td className="px-3 py-1.5 text-neutral-800">{alignmentLabel(zone, pack.garment)}</td>
+                  <td className="px-3 py-1.5 text-neutral-800">{alignmentLabel(zone, pack.garment, pack.referenceSize)}</td>
                 </tr>
               );
             })}

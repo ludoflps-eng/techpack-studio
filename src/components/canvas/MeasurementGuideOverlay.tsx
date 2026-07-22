@@ -1,6 +1,6 @@
 import type { Face, GarmentSpec } from '../../types';
 import { templateScale } from '../../lib/geometry';
-import { MEASUREMENT_GUIDES, guideValueCm } from '../../lib/measurementGuides';
+import { MEASUREMENT_GUIDES, guideABottomLocalY, guideValueCm } from '../../lib/measurementGuides';
 
 export function MeasurementGuideOverlay({
   face,
@@ -29,7 +29,7 @@ export function MeasurementGuideOverlay({
         if (def.orientation === 'vertical') {
           const x = def.imgDX * scale;
           const y1 = def.imgDYTop * scale;
-          const y2 = def.imgDYBottom * scale;
+          const y2 = guideABottomLocalY(face, garment.chestWidthCm, referenceSize);
           const midY = (y1 + y2) / 2;
           return (
             <g key={point}>

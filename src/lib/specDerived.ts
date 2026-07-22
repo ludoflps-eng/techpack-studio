@@ -2,18 +2,18 @@ import { PRINT_TECHNIQUE_LABELS, type GarmentSpec, type PrintZone } from '../typ
 import { zoneRect } from './geometry';
 import { guideABottomLocalY, guideATopLocalY } from './measurementGuides';
 
-export function positionLabel(zone: PrintZone, garment: GarmentSpec): string {
-  const rect = zoneRect(zone, garment);
+export function positionLabel(zone: PrintZone, garment: GarmentSpec, referenceSize: string): string {
+  const rect = zoneRect(zone, garment, referenceSize);
   const anchor = zone.anchorV === 'collar' ? 'from top of shirt' : 'from hem';
   const distance =
     zone.anchorV === 'collar'
       ? rect.y - guideATopLocalY(zone.face, garment.chestWidthCm)
-      : guideABottomLocalY(zone.face, garment.chestWidthCm) - (rect.y + rect.height);
+      : guideABottomLocalY(zone.face, garment.chestWidthCm, referenceSize) - (rect.y + rect.height);
   return `${distance.toFixed(1)} cm ${anchor}`;
 }
 
-export function alignmentLabel(zone: PrintZone, garment: GarmentSpec): string {
-  const rect = zoneRect(zone, garment);
+export function alignmentLabel(zone: PrintZone, garment: GarmentSpec, referenceSize: string): string {
+  const rect = zoneRect(zone, garment, referenceSize);
   const halfChest = garment.chestWidthCm / 2;
   if (zone.align === 'center') {
     const offset = rect.x + rect.width / 2;

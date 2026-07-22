@@ -104,6 +104,7 @@ export function DesignView({ pack }: { pack: TechPack }) {
               face={section}
               zones={pack.zones}
               garment={pack.garment}
+              referenceSize={pack.referenceSize}
               selectedZoneId={selectedZoneId}
               onSelectZone={setSelectedZoneId}
               onChangeZone={(id, patch) => store.updateZone(pack.id, id, patch)}
