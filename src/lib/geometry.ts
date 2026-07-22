@@ -1,5 +1,5 @@
 import type { Face, GarmentSpec, PrintZone } from '../types';
-import { guideABottomLocalY, guideATopLocalY } from './measurementGuides';
+import { guideABottomLocalY, guideAMidLocalY, guideATopLocalY } from './measurementGuides';
 
 /**
  * All measurements are in a "garment-local" coordinate space, in centimeters:
@@ -149,8 +149,9 @@ export interface ZoneRect {
 function rawZoneRect(zone: PrintZone, garment: GarmentSpec): ZoneRect {
   const halfChest = garment.chestWidthCm / 2;
 
-  const y =
-    zone.anchorV === 'collar'
+  const y = zone.centerBox
+    ? guideAMidLocalY(zone.face, garment.chestWidthCm) - zone.heightCm / 2
+    : zone.anchorV === 'collar'
       ? guideATopLocalY(zone.face, garment.chestWidthCm) + zone.distanceVCm
       : guideABottomLocalY(zone.face, garment.chestWidthCm) - zone.distanceVCm - zone.heightCm;
 

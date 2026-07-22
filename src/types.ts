@@ -47,6 +47,9 @@ export interface PrintZone {
   showGuide: boolean;
   /** Shows a tiny dot at the geometric center of this zone's box. */
   showCenterDot: boolean;
+  /** When true, the box is auto-positioned so its center coincides with guide A's midpoint,
+   *  and distanceVCm is derived rather than user-editable. */
+  centerBox: boolean;
   align: HAlign;
   /** Used when align is 'left' or 'right': distance in cm from that garment edge to the box edge. */
   edgeMarginCm: number;

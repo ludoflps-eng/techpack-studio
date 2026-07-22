@@ -64,6 +64,12 @@ export function guideABottomLocalY(face: Face, chestWidthCm: number): number {
   return def.imgDYBottom * templateScale(chestWidthCm, face);
 }
 
+/** The local-cm y-coordinate of guide A's midpoint (mid-distance of the total garment length) on
+ *  the given face — the same point the black dot on the A line marks. */
+export function guideAMidLocalY(face: Face, chestWidthCm: number): number {
+  return (guideATopLocalY(face, chestWidthCm) + guideABottomLocalY(face, chestWidthCm)) / 2;
+}
+
 /** Looks up the cm value for a measurement point at the given reference size, from the same
  *  chart shown on the Input tab. */
 export function guideValueCm(point: string, referenceSize: string): string | null {

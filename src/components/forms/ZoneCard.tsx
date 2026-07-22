@@ -7,6 +7,7 @@ import {
 } from '../../types';
 import { Field, NumberInput, TextInput, Textarea, Select } from '../ui/Field';
 import { zoneRect } from '../../lib/geometry';
+import { guideABottomLocalY, guideATopLocalY } from '../../lib/measurementGuides';
 import { lookupPantone } from '../../lib/pantone';
 
 export function ZoneCard({
@@ -36,6 +37,10 @@ export function ZoneCard({
     Math.abs(fitted.width - zone.widthCm) > 0.05 || Math.abs(fitted.height - zone.heightCm) > 0.05;
   const inkMatch = lookupPantone(zone.pantone);
   const inkUnresolved = zone.pantone.trim() !== '' && !inkMatch;
+  const derivedDistanceVCm =
+    zone.anchorV === 'collar'
+      ? fitted.y - guideATopLocalY(zone.face, garment.chestWidthCm)
+      : guideABottomLocalY(zone.face, garment.chestWidthCm) - (fitted.y + fitted.height);
 
   return (
     <div
@@ -226,12 +231,27 @@ export function ZoneCard({
                   Show center dot box
                 </label>
               </div>
+              <label className="mt-2 flex items-center gap-2 text-sm text-neutral-700">
+                <input
+                  type="checkbox"
+                  checked={zone.centerBox}
+                  onChange={(e) => onChange({ centerBox: e.target.checked })}
+                  className="h-4 w-4 accent-rose-600"
+                />
+                Center the box
+              </label>
             </Field>
             <Field label={`Distance from ${zone.anchorV === 'collar' ? 'top of shirt' : 'hem'} (cm)`}>
               <NumberInput
-                value={zone.distanceVCm}
+                value={zone.centerBox ? Number(derivedDistanceVCm.toFixed(1)) : zone.distanceVCm}
+                disabled={zone.centerBox}
                 onChange={(e) => onChange({ distanceVCm: Number(e.target.value) })}
               />
+              {zone.centerBox && (
+                <p className="mt-1 text-xs text-neutral-500">
+                  Auto-set so the box is centered on guide A. Untick "Center the box" to edit manually.
+                </p>
+              )}
             </Field>
           </div>
 
