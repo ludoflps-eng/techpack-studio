@@ -88,6 +88,8 @@ export interface TechPack {
 }
 
 export const FONT_OPTIONS: { value: string; label: string; cssFamily: string; weight: number }[] = [
+  { value: 'impact', label: 'Impact', cssFamily: "Impact, Haettenschweiler, 'Franklin Gothic Bold', sans-serif", weight: 400 },
+  { value: 'georgia', label: 'Georgia', cssFamily: "Georgia, 'Times New Roman', serif", weight: 400 },
   { value: 'big-shoulders', label: 'Big Shoulders Display — Extra Bold', cssFamily: "'Big Shoulders Display', sans-serif", weight: 800 },
   { value: 'alfa-slab', label: 'Alfa Slab One — Bold', cssFamily: "'Alfa Slab One', serif", weight: 400 },
   { value: 'bebas-neue', label: 'Bebas Neue (all caps only)', cssFamily: "'Bebas Neue', sans-serif", weight: 400 },

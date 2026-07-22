@@ -22,7 +22,7 @@ export function createZone(face: Face, order: number): PrintZone {
     face,
     label: order === 0 ? 'Main print' : `Print ${order + 1}`,
     content: 'YOUR TEXT',
-    font: 'big-shoulders',
+    font: 'impact',
     textCase: 'uppercase',
     lineSpacing: 'normal',
     stretchToFit: false,
