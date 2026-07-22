@@ -60,6 +60,17 @@ export function Home() {
                 setImportingPdf(true);
                 try {
                   const lines = await extractPdfLines(file);
+                  if (lines.length === 0) {
+                    alert(
+                      "Could not read this PDF — it has no extractable text (checked, and there's not a single line).\n\n" +
+                        'This usually means it was produced by a virtual printer like "Microsoft Print to PDF" rather than a ' +
+                        'browser\'s native PDF export — that pipeline can convert all text into vector outlines, leaving nothing ' +
+                        'for a computer to read back.\n\n' +
+                        'Try re-exporting with your browser\'s own "Save as PDF" print destination instead of a system printer, ' +
+                        'then import that file.'
+                    );
+                    return;
+                  }
                   const { pack, warnings } = parseTechPackFromLines(lines);
                   store.importPack(pack);
                   if (warnings.length > 0) {
