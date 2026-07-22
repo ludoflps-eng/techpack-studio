@@ -20,6 +20,16 @@ export function canvasSize(garment: GarmentSpec) {
   };
 }
 
+/** Purely visual vertical shift for the front canvas so it lines up with the back canvas on
+ *  screen: the two reference images have different amounts of empty margin above the shoulder
+ *  peak (guide A's top), so at the same originY they'd otherwise show the garment starting at
+ *  different heights. Shifts front down to match back's shoulder-peak height; never the reverse,
+ *  and never changes the underlying local-cm coordinates used for zone/guide math. */
+export function faceDisplayOffsetY(face: Face, chestWidthCm: number): number {
+  if (face !== 'front') return 0;
+  return guideATopLocalY('back', chestWidthCm) - guideATopLocalY('front', chestWidthCm);
+}
+
 export interface SilhouetteKeyPoints {
   halfChest: number;
   neckHalf: number;

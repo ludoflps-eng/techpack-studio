@@ -1,6 +1,6 @@
 import { Fragment, useId } from 'react';
 import type { Face, GarmentSpec, PrintZone } from '../../types';
-import { canvasSize, templateFillMaskImage, templateImage, zoneRect, type ZoneRect } from '../../lib/geometry';
+import { canvasSize, faceDisplayOffsetY, templateFillMaskImage, templateImage, zoneRect, type ZoneRect } from '../../lib/geometry';
 import { guideABottomLocalY, guideATopLocalY } from '../../lib/measurementGuides';
 import { ZonePrint } from './ZonePrint';
 import { MeasurementGuideOverlay } from './MeasurementGuideOverlay';
@@ -30,10 +30,11 @@ export function ShirtCanvas({
   const placement = templateImage(garment.chestWidthCm, face, effectiveReferenceSize);
   const fillMaskPlacement = templateFillMaskImage(garment.chestWidthCm, face, effectiveReferenceSize);
   const maskId = useId();
+  const displayOffsetY = faceDisplayOffsetY(face, garment.chestWidthCm);
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto select-none">
-      <g transform={`translate(${originX} ${originY})`}>
+      <g transform={`translate(${originX} ${originY + displayOffsetY})`}>
         <image {...placement} preserveAspectRatio="none" />
 
         {garment.fabricHex && (
