@@ -45,6 +45,8 @@ export interface PrintZone {
   distanceVCm: number;
   /** Shows a dotted line on the canvas from the chosen anchor point to this zone's box. */
   showGuide: boolean;
+  /** Shows a tiny dot at the geometric center of this zone's box. */
+  showCenterDot: boolean;
   align: HAlign;
   /** Used when align is 'left' or 'right': distance in cm from that garment edge to the box edge. */
   edgeMarginCm: number;

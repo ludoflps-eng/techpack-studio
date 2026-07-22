@@ -56,6 +56,9 @@ export function ZonePrint({
           {line}
         </text>
       ))}
+      {zone.showCenterDot && (
+        <circle cx={rect.x + rect.width / 2} cy={rect.y + rect.height / 2} r={0.5} fill="#111827" />
+      )}
     </g>
   );
 }
