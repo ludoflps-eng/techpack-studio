@@ -29,13 +29,19 @@ export type GuideDef = HorizontalGuideDef | VerticalGuideDef;
  * Point definitions provided so far (A, B, D, E, F — from the front reference image with
  * legend lines). Position values are best-effort estimates read off that image; expect to
  * refine once more reference pictures come in for the remaining points.
+ *
+ * A point can have a guide on more than one face (e.g. A — total garment height — is the same
+ * measurement on front and back), so each entry is a list of per-face definitions.
  */
-export const MEASUREMENT_GUIDES: Partial<Record<string, GuideDef>> = {
-  A: { orientation: 'vertical', face: 'front', color: '#16a34a', imgDX: 0, imgDYTop: -53, imgDYBottom: 263 },
-  B: { orientation: 'horizontal', face: 'front', color: '#dc2626', imgDY: 21, imgHalfWidth: 125.5 },
-  D: { orientation: 'horizontal', face: 'front', color: '#2563eb', imgDY: 70, imgHalfWidth: 125.5 },
-  E: { orientation: 'horizontal', face: 'front', color: '#f97316', imgDY: 150, imgHalfWidth: 125.5 },
-  F: { orientation: 'horizontal', face: 'front', color: '#9333ea', imgDY: 224, imgHalfWidth: 125.5 },
+export const MEASUREMENT_GUIDES: Partial<Record<string, GuideDef[]>> = {
+  A: [
+    { orientation: 'vertical', face: 'front', color: '#16a34a', imgDX: 0, imgDYTop: -53, imgDYBottom: 263 },
+    { orientation: 'vertical', face: 'back', color: '#16a34a', imgDX: 0, imgDYTop: -11, imgDYBottom: 240 },
+  ],
+  B: [{ orientation: 'horizontal', face: 'front', color: '#dc2626', imgDY: 21, imgHalfWidth: 125.5 }],
+  D: [{ orientation: 'horizontal', face: 'front', color: '#2563eb', imgDY: 70, imgHalfWidth: 125.5 }],
+  E: [{ orientation: 'horizontal', face: 'front', color: '#f97316', imgDY: 150, imgHalfWidth: 125.5 }],
+  F: [{ orientation: 'horizontal', face: 'front', color: '#9333ea', imgDY: 224, imgHalfWidth: 125.5 }],
 };
 
 /** Looks up the cm value for a measurement point at the given reference size, from the same

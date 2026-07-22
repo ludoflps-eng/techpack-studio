@@ -19,9 +19,10 @@ export function MeasurementGuideOverlay({
 
   return (
     <g fontFamily="Inter, sans-serif" fontWeight={700} fontSize={fontSize}>
-      {selectedPoints.map((point) => {
-        const def = MEASUREMENT_GUIDES[point];
-        if (!def || def.face !== face) return null;
+      {selectedPoints.flatMap((point) => {
+        const defs = MEASUREMENT_GUIDES[point];
+        const def = defs?.find((d) => d.face === face);
+        if (!def) return [];
         const value = guideValueCm(point, referenceSize);
         const label = value ? `${point} — ${value} cm` : point;
 
