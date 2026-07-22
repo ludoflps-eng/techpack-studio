@@ -1,7 +1,7 @@
 import { Fragment, useId } from 'react';
 import type { Face, GarmentSpec, PrintZone } from '../../types';
 import { canvasSize, templateFillMaskImage, templateImage, zoneRect, type ZoneRect } from '../../lib/geometry';
-import { guideATopLocalY } from '../../lib/measurementGuides';
+import { guideABottomLocalY, guideATopLocalY } from '../../lib/measurementGuides';
 import { ZonePrint } from './ZonePrint';
 import { MeasurementGuideOverlay } from './MeasurementGuideOverlay';
 
@@ -96,7 +96,9 @@ function ZoneReferenceGuide({
 }) {
   const centerX = rect.x + rect.width / 2;
   const isFromTop = zone.anchorV === 'collar';
-  const anchorY = isFromTop ? guideATopLocalY(face, garment.chestWidthCm) : garment.bodyLengthCm;
+  const anchorY = isFromTop
+    ? guideATopLocalY(face, garment.chestWidthCm)
+    : guideABottomLocalY(face, garment.chestWidthCm);
   const zoneEdgeY = isFromTop ? rect.y : rect.y + rect.height;
   const [y1, y2] = isFromTop ? [anchorY, zoneEdgeY] : [zoneEdgeY, anchorY];
 

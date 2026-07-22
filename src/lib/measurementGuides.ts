@@ -55,6 +55,15 @@ export function guideATopLocalY(face: Face, chestWidthCm: number): number {
   return def.imgDYTop * templateScale(chestWidthCm, face);
 }
 
+/** The local-cm y-coordinate of guide A's bottom endpoint (the hem edge it touches) on the
+ *  given face — used so a "from hem" reference guide starts at the same point the A line does,
+ *  rather than the garment spec's bodyLengthCm value. */
+export function guideABottomLocalY(face: Face, chestWidthCm: number): number {
+  const def = MEASUREMENT_GUIDES.A?.find((d) => d.face === face);
+  if (!def || def.orientation !== 'vertical') return 0;
+  return def.imgDYBottom * templateScale(chestWidthCm, face);
+}
+
 /** Looks up the cm value for a measurement point at the given reference size, from the same
  *  chart shown on the Input tab. */
 export function guideValueCm(point: string, referenceSize: string): string | null {
