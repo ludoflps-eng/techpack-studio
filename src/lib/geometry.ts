@@ -89,8 +89,8 @@ interface ImageCalibration {
  */
 const TEMPLATES: Record<Face, ImageCalibration> = {
   front: {
-    href: '/front-template.png',
-    fillMaskHref: '/front-template-fillmask.png',
+    href: `${import.meta.env.BASE_URL}front-template.png`,
+    fillMaskHref: `${import.meta.env.BASE_URL}front-template-fillmask.png`,
     naturalWidth: 429,
     naturalHeight: 322,
     centerX: 214.5,
@@ -98,8 +98,8 @@ const TEMPLATES: Record<Face, ImageCalibration> = {
     underarmDX: 125.5,
   },
   back: {
-    href: '/back-template.png',
-    fillMaskHref: '/back-template-fillmask.png',
+    href: `${import.meta.env.BASE_URL}back-template.png`,
+    fillMaskHref: `${import.meta.env.BASE_URL}back-template-fillmask.png`,
     naturalWidth: 358,
     naturalHeight: 256,
     centerX: 174.5,
