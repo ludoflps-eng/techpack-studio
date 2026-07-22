@@ -39,6 +39,7 @@ export const MEASUREMENT_GUIDES: Partial<Record<string, GuideDef[]>> = {
     { orientation: 'vertical', face: 'back', color: '#16a34a', imgDX: 0, imgDYTop: -11, imgDYBottom: 240 },
   ],
   B: [{ orientation: 'horizontal', face: 'front', color: '#dc2626', imgDY: 21, imgHalfWidth: 125.5 }],
+  C: [{ orientation: 'horizontal', face: 'back', color: '#0d9488', imgDY: 25, imgHalfWidth: 99.5 }],
   D: [{ orientation: 'horizontal', face: 'front', color: '#2563eb', imgDY: 70, imgHalfWidth: 125.5 }],
   E: [{ orientation: 'horizontal', face: 'front', color: '#f97316', imgDY: 150, imgHalfWidth: 125.5 }],
   F: [{ orientation: 'horizontal', face: 'front', color: '#9333ea', imgDY: 224, imgHalfWidth: 125.5 }],
