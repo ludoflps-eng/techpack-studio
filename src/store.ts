@@ -196,6 +196,18 @@ export const useStore = create<StoreState>()(
         }));
       },
     }),
-    { name: 'techpack-studio' }
+    {
+      name: 'techpack-studio',
+      version: 1,
+      migrate: (persisted, version) => {
+        const state = persisted as StoreState;
+        if (version < 1 && state?.packs) {
+          state.packs = state.packs.map((p) =>
+            p.styleName === 'Shy boy need kiss' ? { ...p, styleName: 'Shy boy needs a kiss' } : p
+          );
+        }
+        return state;
+      },
+    }
   )
 );

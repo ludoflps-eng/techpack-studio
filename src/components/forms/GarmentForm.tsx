@@ -3,6 +3,7 @@ import { Field, Select, TextInput, Textarea } from '../ui/Field';
 import { GARMENT_STYLE_OPTIONS, isGarmentStyle } from '../../lib/garmentStyles';
 import { SIZE_OPTIONS, isSizeLabel, type SizeLabel } from '../../lib/sizeChart';
 import { lookupPantone } from '../../lib/pantone';
+import { PantonePicker } from './PantonePicker';
 
 export function GarmentForm({
   garment,
@@ -62,6 +63,9 @@ export function GarmentForm({
                   }
             }
             title={match ? match.hex : 'Not recognized'}
+          />
+          <PantonePicker
+            onSelect={(s) => onChange({ fabricPantone: s.code, fabricHex: s.hex, fabricColorName: s.name })}
           />
           <TextInput
             placeholder="e.g. 7528 C"

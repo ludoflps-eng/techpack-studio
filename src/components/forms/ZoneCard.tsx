@@ -8,6 +8,7 @@ import { Field, NumberInput, TextInput, Textarea, Select } from '../ui/Field';
 import { zoneRect } from '../../lib/geometry';
 import { guideABottomLocalY, guideATopLocalY } from '../../lib/measurementGuides';
 import { lookupPantone } from '../../lib/pantone';
+import { PantonePicker } from './PantonePicker';
 
 export function ZoneCard({
   zone,
@@ -168,6 +169,7 @@ export function ZoneCard({
                 }
                 title={inkMatch ? inkMatch.hex : 'Not recognized'}
               />
+              <PantonePicker onSelect={(s) => onChange({ pantone: s.code, hex: s.hex, colorName: s.name })} />
               <TextInput
                 placeholder="e.g. 812 C"
                 value={zone.pantone}

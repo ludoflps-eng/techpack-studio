@@ -1,5 +1,5 @@
 export const COLLECTION_OPTIONS = [
-  'Shy boy need kiss',
+  'Shy boy needs a kiss',
   'I love you more than your boyfriend',
 ] as const;
 
