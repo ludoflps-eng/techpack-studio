@@ -2,7 +2,9 @@ export type Face = 'front' | 'back';
 
 export type HAlign = 'center' | 'left' | 'right';
 
-export type VAnchor = 'collar' | 'hem';
+export type VAnchor = 'collar' | 'hem' | 'zone';
+
+export type ZoneEdge = 'top' | 'bottom';
 
 export type TextCase = 'none' | 'uppercase' | 'lowercase';
 
@@ -42,9 +44,19 @@ export interface PrintZone {
   pantone: string;
   hex: string;
   widthCm: number;
+  /** The actual rendered height of one line of letters, in cm — the value the user sets.
+   *  `heightCm` (the print box height) is exclusively derived from this: textHeightCm times the
+   *  number of lines in `content`, kept in sync whenever either changes. It is never edited
+   *  directly. */
+  textHeightCm: number;
   heightCm: number;
   anchorV: VAnchor;
   distanceVCm: number;
+  /** When anchorV is 'zone', the id of the print zone this one is positioned relative to. */
+  anchorZoneId: string;
+  /** When anchorV is 'zone', which edge of the target zone distanceVCm is measured from — this
+   *  zone's top sits `distanceVCm` below that edge (negative moves it above instead). */
+  anchorZoneEdge: ZoneEdge;
   /** Shows a dotted line on the canvas from the chosen anchor point to this zone's box. */
   showGuide: boolean;
   /** Shows a tiny dot at the geometric center of this zone's box. */
@@ -72,6 +84,47 @@ export interface GarmentSpec {
   /** Print technique used for the whole tech pack — a garment-level spec, not per-zone. */
   technique: PrintTechnique;
   techniqueOther: string;
+  /** Shows a 5cm-spaced horizontal ruler grid over each garment canvas, row 1 at guide A's
+   *  bottom (the hem reference), numbered upward from there. */
+  gridLinesEnabled: boolean;
+}
+
+/** Simple text placed on the front tee shirt — no bounding box, no width-fit, just content,
+ *  letter height, and a position given as a (grid-circle cm, grid-triangle cm) coordinate. The
+ *  bottom-left corner of the first line's letters lands exactly on that point. A pack can have
+ *  any number of these, each positioned independently. */
+export interface FrontTextSpec {
+  id: string;
+  content: string;
+  textHeightCm: number;
+  /** cm value of the horizontal grid line (numbered circle) the text's bottom edge sits on. */
+  circleCm: number;
+  /** cm value of the vertical grid line (numbered triangle) the text's left edge sits on. */
+  triangleCm: number;
+  /** When true, draws 4 fine red lines flush against the text's actual rendered ink (top,
+   *  bottom, left, right) plus width/height measurements — a diagnostic overlay to cross-check
+   *  the text's real on-shirt size, not a layout constraint. */
+  showLimits: boolean;
+  /** How the content is capitalized on render — 'none' prints it exactly as typed. */
+  textCase: TextCase;
+  /** One of FONT_OPTIONS' `value`s — defaults to 'impact'. */
+  font: string;
+  /** Ink color name, Pantone reference, and resolved hex — same Pantone-lookup pattern as the
+   *  garment's fabric color. */
+  textColorName: string;
+  textPantone: string;
+  textHex: string;
+  /** When set to another front text's id (within the same pack), this text's position is
+   *  computed relative to that text's own (resolved) position instead of using circleCm/
+   *  triangleCm directly — so moving the anchor target carries this text along with it. Empty
+   *  string means "position absolutely", using circleCm/triangleCm as-is. */
+  anchorTextId: string;
+  /** cm this text sits away from its anchor target along the circle axis — negative moves it
+   *  below, positive moves it above. Only used when anchorTextId is set. */
+  anchorBelowCm: number;
+  /** cm this text sits to the right of its anchor target, along the triangle axis (negative =
+   *  left). Only used when anchorTextId is set. */
+  anchorRightCm: number;
 }
 
 export interface TechPack {
@@ -85,6 +138,8 @@ export interface TechPack {
   garment: GarmentSpec;
   zones: PrintZone[];
   productionNotes: string[];
+  frontTexts: FrontTextSpec[];
+  backTexts: FrontTextSpec[];
 }
 
 export const FONT_OPTIONS: { value: string; label: string; cssFamily: string; weight: number }[] = [

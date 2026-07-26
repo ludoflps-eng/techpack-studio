@@ -2,6 +2,7 @@ import type { Face, HAlign, PrintTechnique, TechPack, VAnchor } from '../types';
 import { FONT_OPTIONS } from '../types';
 import { createTechPack, createZone } from '../factories';
 import { hexForColorName } from './colorNames';
+import { countLines } from './text';
 
 export interface PdfParseResult {
   pack: TechPack;
@@ -452,6 +453,11 @@ export function parseTechPackFromLines(rawLines: string[]): PdfParseResult {
       } else {
         warnings.push(`Could not detect print details for "${zone.label}" — content/font/ink left blank.`);
       }
+
+      // heightCm above came straight from the PDF's recap table; back-derive the per-line text
+      // height it implies now that content is final, since heightCm is otherwise always
+      // exclusively computed from textHeightCm × line count, never stored independently.
+      zone.textHeightCm = zone.heightCm / countLines(zone.content);
 
       pack.zones.push(zone);
     }

@@ -1,8 +1,9 @@
-export const SIZE_OPTIONS = ['S', 'M', 'L', 'XL', 'XXL'] as const;
+export const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
 export type SizeLabel = (typeof SIZE_OPTIONS)[number];
 
 /** Generic unisex crew-tee flat measurements (cm) — a reasonable starting point per size, editable after. */
 export const SIZE_CHART: Record<SizeLabel, { chestWidthCm: number; bodyLengthCm: number }> = {
+  XS: { chestWidthCm: 41, bodyLengthCm: 63 },
   S: { chestWidthCm: 46, bodyLengthCm: 66 },
   M: { chestWidthCm: 51, bodyLengthCm: 69 },
   L: { chestWidthCm: 56, bodyLengthCm: 72 },

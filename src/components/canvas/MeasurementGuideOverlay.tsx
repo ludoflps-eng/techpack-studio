@@ -1,6 +1,11 @@
 import type { Face, GarmentSpec } from '../../types';
 import { templateScale } from '../../lib/geometry';
-import { MEASUREMENT_GUIDES, guideABottomLocalY, guideValueCm } from '../../lib/measurementGuides';
+import {
+  MEASUREMENT_GUIDES,
+  guideABottomLocalY,
+  guideHorizontalHalfWidthLocalCm,
+  guideValueCm,
+} from '../../lib/measurementGuides';
 
 export function MeasurementGuideOverlay({
   face,
@@ -43,7 +48,7 @@ export function MeasurementGuideOverlay({
         }
 
         const y = def.imgDY * scale;
-        const halfWidth = def.imgHalfWidth * scale;
+        const halfWidth = guideHorizontalHalfWidthLocalCm(point, face, garment.chestWidthCm, referenceSize);
         return (
           <g key={point}>
             <line x1={-halfWidth} y1={y} x2={halfWidth} y2={y} stroke={def.color} strokeWidth={0.3} />

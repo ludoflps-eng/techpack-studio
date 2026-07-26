@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { OVERSIZE_CHART } from '../../lib/oversizeChart';
 
-const HIDDEN_POINTS = new Set(['G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q']);
+const HIDDEN_POINTS = new Set(['B', 'C', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q']);
 export const POINTS = OVERSIZE_CHART.map((row) => row.point).filter((point) => !HIDDEN_POINTS.has(point));
 
 export function MeasurementGuideControl({

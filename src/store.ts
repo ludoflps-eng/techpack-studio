@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
-import type { Face, PrintZone, TechPack } from './types';
-import { createTechPack, createZone } from './factories';
+import type { Face, FrontTextSpec, PrintZone, TechPack } from './types';
+import { createFrontTextDefaults, createFrontTextItem, createTechPack, createZone } from './factories';
 import { SIZE_CHART, type SizeLabel } from './lib/sizeChart';
+import { countLines } from './lib/text';
 
 interface StoreState {
   packs: TechPack[];
@@ -15,6 +16,12 @@ interface StoreState {
   setActive: (id: string | null) => void;
   updatePack: (id: string, patch: Partial<Omit<TechPack, 'id' | 'zones'>>) => void;
   updateGarment: (id: string, patch: Partial<TechPack['garment']>) => void;
+  addFrontText: (packId: string) => string;
+  updateFrontText: (packId: string, textId: string, patch: Partial<FrontTextSpec>) => void;
+  removeFrontText: (packId: string, textId: string) => void;
+  addBackText: (packId: string) => string;
+  updateBackText: (packId: string, textId: string, patch: Partial<FrontTextSpec>) => void;
+  removeBackText: (packId: string, textId: string) => void;
   applySize: (id: string, size: SizeLabel) => void;
   importPack: (pack: TechPack) => string;
 
@@ -54,6 +61,8 @@ export const useStore = create<StoreState>()(
           createdAt: Date.now(),
           updatedAt: Date.now(),
           zones: src.zones.map((z) => ({ ...z, id: nanoid(8) })),
+          frontTexts: (src.frontTexts ?? []).map((t) => ({ ...t, id: nanoid(8) })),
+          backTexts: (src.backTexts ?? []).map((t) => ({ ...t, id: nanoid(8) })),
         };
         set((s) => ({ packs: [...s.packs, copy], activeId: copy.id }));
         return copy.id;
@@ -78,6 +87,88 @@ export const useStore = create<StoreState>()(
         set((s) => ({
           packs: s.packs.map((p) =>
             p.id === id ? touch({ ...p, garment: { ...p.garment, ...patch } }) : p
+          ),
+        }));
+      },
+
+      addFrontText: (packId) => {
+        const item = createFrontTextItem();
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id === packId ? touch({ ...p, frontTexts: [...p.frontTexts, item] }) : p
+          ),
+        }));
+        return item.id;
+      },
+
+      updateFrontText: (packId, textId, patch) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id !== packId
+              ? p
+              : touch({
+                  ...p,
+                  frontTexts: p.frontTexts.map((t) =>
+                    t.id === textId ? { ...createFrontTextDefaults(), ...t, ...patch } : t
+                  ),
+                })
+          ),
+        }));
+      },
+
+      removeFrontText: (packId, textId) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id !== packId
+              ? p
+              : touch({
+                  ...p,
+                  frontTexts: p.frontTexts
+                    .filter((t) => t.id !== textId)
+                    // Any text anchored to the one being removed falls back to its own absolute
+                    // position rather than pointing at a now-nonexistent target.
+                    .map((t) => (t.anchorTextId === textId ? { ...t, anchorTextId: '' } : t)),
+                })
+          ),
+        }));
+      },
+
+      addBackText: (packId) => {
+        const item = createFrontTextItem();
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id === packId ? touch({ ...p, backTexts: [...(p.backTexts ?? []), item] }) : p
+          ),
+        }));
+        return item.id;
+      },
+
+      updateBackText: (packId, textId, patch) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id !== packId
+              ? p
+              : touch({
+                  ...p,
+                  backTexts: (p.backTexts ?? []).map((t) =>
+                    t.id === textId ? { ...createFrontTextDefaults(), ...t, ...patch } : t
+                  ),
+                })
+          ),
+        }));
+      },
+
+      removeBackText: (packId, textId) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id !== packId
+              ? p
+              : touch({
+                  ...p,
+                  backTexts: (p.backTexts ?? [])
+                    .filter((t) => t.id !== textId)
+                    .map((t) => (t.anchorTextId === textId ? { ...t, anchorTextId: '' } : t)),
+                })
           ),
         }));
       },
@@ -198,13 +289,93 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'techpack-studio',
-      version: 1,
+      version: 11,
       migrate: (persisted, version) => {
-        const state = persisted as StoreState;
+        // Legacy pack shapes vary release to release (frontText -> frontTexts, fields added to
+        // items, etc.), so this whole function works loosely-typed rather than fighting the
+        // current TechPack type at every step.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const state = persisted as any;
         if (version < 1 && state?.packs) {
-          state.packs = state.packs.map((p) =>
+          state.packs = state.packs.map((p: any) =>
             p.styleName === 'Shy boy need kiss' ? { ...p, styleName: 'Shy boy needs a kiss' } : p
           );
+        }
+        if (version < 2 && state?.packs) {
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            zones: p.zones.map((z: any) => (z.label === 'Main print' ? { ...z, label: 'Print 1' } : z)),
+          }));
+        }
+        if (version < 3 && state?.packs) {
+          // "Print height" is gone — box height is now exclusively derived from a per-line
+          // "Text height" times the number of lines. Back-derive that text height from each
+          // existing zone's current box height so it renders exactly as it did before.
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            zones: p.zones.map((z: PrintZone & { textHeightCm?: number }) => ({
+              ...z,
+              textHeightCm: z.textHeightCm ?? z.heightCm / countLines(z.content),
+            })),
+          }));
+        }
+        if (version < 4 && state?.packs) {
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontText: p.frontText ?? createFrontTextDefaults(),
+          }));
+        }
+        if (version < 5 && state?.packs) {
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontText: { ...createFrontTextDefaults(), ...p.frontText },
+          }));
+        }
+        if (version < 6 && state?.packs) {
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontText: { ...createFrontTextDefaults(), ...p.frontText },
+          }));
+        }
+        if (version < 7 && state?.packs) {
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontText: { ...createFrontTextDefaults(), ...p.frontText },
+          }));
+        }
+        if (version < 8 && state?.packs) {
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontText: { ...createFrontTextDefaults(), ...p.frontText },
+          }));
+        }
+        if (version < 9 && state?.packs) {
+          // frontText (singular) -> frontTexts (array) — a pack can now have any number of front
+          // texts. Wrap the old single object into a one-item array, backfilling any missing
+          // fields and assigning it an id (older shape never had one).
+          state.packs = state.packs.map((p: any) => {
+            const { frontText, ...rest } = p;
+            return {
+              ...rest,
+              frontTexts: [{ ...createFrontTextDefaults(), ...frontText, id: frontText?.id ?? nanoid(8) }],
+            };
+          });
+        }
+        if (version < 10 && state?.packs) {
+          // Front texts can now anchor their position to another text in the same pack.
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontTexts: p.frontTexts.map((t: any) => ({ ...createFrontTextDefaults(), ...t })),
+          }));
+        }
+        if (version < 11 && state?.packs) {
+          // Back texts: same feature set as front texts, independent list per pack.
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            backTexts: Array.isArray(p.backTexts)
+              ? p.backTexts.map((t: any) => ({ ...createFrontTextDefaults(), ...t, id: t.id ?? nanoid(8) }))
+              : [createFrontTextItem()],
+          }));
         }
         return state;
       },

@@ -1,7 +1,8 @@
 import { nanoid } from 'nanoid';
-import type { Face, GarmentSpec, PrintZone, TechPack } from './types';
+import type { Face, FrontTextSpec, GarmentSpec, PrintZone, TechPack } from './types';
 import { SIZE_CHART } from './lib/sizeChart';
 import { GARMENT_STYLE_OPTIONS } from './lib/garmentStyles';
+import { deriveZoneHeight } from './lib/text';
 
 export function createGarmentDefaults(): GarmentSpec {
   return {
@@ -10,18 +11,21 @@ export function createGarmentDefaults(): GarmentSpec {
     fabricColorName: 'White',
     fabricPantone: '',
     fabricHex: '#f5f5f0',
-    fabricComposition: '100% cotton, 180gsm',
+    fabricComposition: '100% cotton, 280gsm',
     technique: 'serigraphy-both',
     techniqueOther: '',
+    gridLinesEnabled: false,
   };
 }
 
 export function createZone(face: Face, order: number): PrintZone {
+  const content = 'YOUR TEXT';
+  const textHeightCm = 10;
   return {
     id: nanoid(8),
     face,
-    label: order === 0 ? 'Main print' : `Print ${order + 1}`,
-    content: 'YOUR TEXT',
+    label: `Print ${order + 1}`,
+    content,
     font: 'impact',
     textCase: 'uppercase',
     lineSpacing: 'normal',
@@ -30,9 +34,12 @@ export function createZone(face: Face, order: number): PrintZone {
     pantone: '',
     hex: '#111111',
     widthCm: 30,
-    heightCm: 10,
+    textHeightCm,
+    heightCm: deriveZoneHeight(content, textHeightCm),
     anchorV: 'collar',
     distanceVCm: 14,
+    anchorZoneId: '',
+    anchorZoneEdge: 'bottom',
     showGuide: false,
     showCenterDot: false,
     centerBox: false,
@@ -42,6 +49,31 @@ export function createZone(face: Face, order: number): PrintZone {
     symbolNote: '',
     notes: '',
   };
+}
+
+/** Field defaults for a front-text item, deliberately without an `id` — used both to create a
+ *  fresh item (via createFrontTextItem) and to backfill any missing fields on an existing item
+ *  (spread over the stored object, whose own id always wins). */
+export function createFrontTextDefaults(): Omit<FrontTextSpec, 'id'> {
+  return {
+    content: '',
+    textHeightCm: 5,
+    circleCm: 40,
+    triangleCm: 20,
+    showLimits: false,
+    textCase: 'none',
+    font: 'impact',
+    textColorName: 'Black',
+    textPantone: '',
+    textHex: '#111111',
+    anchorTextId: '',
+    anchorBelowCm: 0,
+    anchorRightCm: 0,
+  };
+}
+
+export function createFrontTextItem(): FrontTextSpec {
+  return { id: nanoid(8), ...createFrontTextDefaults() };
 }
 
 export function createTechPack(name = 'Collection'): TechPack {
@@ -57,5 +89,7 @@ export function createTechPack(name = 'Collection'): TechPack {
     garment: createGarmentDefaults(),
     zones: [],
     productionNotes: [],
+    frontTexts: [createFrontTextItem()],
+    backTexts: [createFrontTextItem()],
   };
 }

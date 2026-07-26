@@ -8,7 +8,7 @@ export interface OversizeRow {
 
 /** "Tee shirt oversize" measurement point chart (point letters A-Q), values in cm. */
 export const OVERSIZE_CHART: OversizeRow[] = [
-  { point: 'A', values: ['74', '76', '78', '80', '82', '84'], toleranceCm: '1' },
+  { point: 'A', values: ['66', '69', '72', '75', '77,5', '77,5'], toleranceCm: '1' },
   { point: 'B', values: ['50', '51', '52', '54', '56', '58'], toleranceCm: '0,5' },
   { point: 'C', values: ['51', '52', '53', '55', '57', '59'], toleranceCm: '0,5' },
   { point: 'D', values: ['52', '54', '56', '59', '62', '65'], toleranceCm: '1' },

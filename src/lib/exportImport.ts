@@ -1,4 +1,6 @@
-import type { TechPack } from '../types';
+import { nanoid } from 'nanoid';
+import type { FrontTextSpec, TechPack } from '../types';
+import { createFrontTextDefaults } from '../factories';
 
 function slug(s: string) {
   return s
@@ -23,8 +25,16 @@ export function readTechPackFile(file: File): Promise<TechPack> {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const data = JSON.parse(reader.result as string) as TechPack;
+        const data = JSON.parse(reader.result as string) as TechPack & { frontText?: FrontTextSpec };
         if (!data.zones || !data.garment) throw new Error('Not a valid tech pack file');
+        // Back-compat: older exports had a single `frontText` object instead of a `frontTexts`
+        // array, and even the array shape may predate a field added since. Normalize both.
+        const legacySingle = data.frontText;
+        delete data.frontText;
+        const rawList = Array.isArray(data.frontTexts) ? data.frontTexts : legacySingle ? [legacySingle] : [];
+        data.frontTexts = rawList.map((t) => ({ ...createFrontTextDefaults(), ...t, id: t.id ?? nanoid(8) }));
+        const rawBackList = Array.isArray(data.backTexts) ? data.backTexts : [];
+        data.backTexts = rawBackList.map((t) => ({ ...createFrontTextDefaults(), ...t, id: t.id ?? nanoid(8) }));
         resolve(data);
       } catch (err) {
         reject(err);

@@ -2,8 +2,20 @@ import { PRINT_TECHNIQUE_LABELS, type GarmentSpec, type PrintZone } from '../typ
 import { zoneRect } from './geometry';
 import { guideABottomLocalY, guideATopLocalY } from './measurementGuides';
 
-export function positionLabel(zone: PrintZone, garment: GarmentSpec, referenceSize: string): string {
-  const rect = zoneRect(zone, garment, referenceSize);
+export function positionLabel(
+  zone: PrintZone,
+  garment: GarmentSpec,
+  referenceSize: string,
+  allZones: PrintZone[] = []
+): string {
+  const rect = zoneRect(zone, garment, referenceSize, allZones);
+  if (zone.anchorV === 'zone') {
+    const target = allZones.find((z) => z.id === zone.anchorZoneId);
+    if (target) {
+      const edge = zone.anchorZoneEdge === 'top' ? 'top' : 'bottom';
+      return `${zone.distanceVCm.toFixed(1)} cm below the ${edge} of "${target.label || 'Untitled zone'}"`;
+    }
+  }
   const anchor = zone.anchorV === 'collar' ? 'from top of shirt' : 'from hem';
   const distance =
     zone.anchorV === 'collar'
@@ -12,8 +24,13 @@ export function positionLabel(zone: PrintZone, garment: GarmentSpec, referenceSi
   return `${distance.toFixed(1)} cm ${anchor}`;
 }
 
-export function alignmentLabel(zone: PrintZone, garment: GarmentSpec, referenceSize: string): string {
-  const rect = zoneRect(zone, garment, referenceSize);
+export function alignmentLabel(
+  zone: PrintZone,
+  garment: GarmentSpec,
+  referenceSize: string,
+  allZones: PrintZone[] = []
+): string {
+  const rect = zoneRect(zone, garment, referenceSize, allZones);
   const halfChest = garment.chestWidthCm / 2;
   if (zone.align === 'center') {
     const offset = rect.x + rect.width / 2;
