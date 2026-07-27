@@ -4,6 +4,7 @@ import {
   MEASUREMENT_GUIDES,
   guideABottomLocalY,
   guideHorizontalHalfWidthLocalCm,
+  guideHorizontalLocalY,
   guideValueCm,
 } from '../../lib/measurementGuides';
 
@@ -47,7 +48,7 @@ export function MeasurementGuideOverlay({
           );
         }
 
-        const y = def.imgDY * scale;
+        const y = guideHorizontalLocalY(point, face, garment.chestWidthCm);
         const halfWidth = guideHorizontalHalfWidthLocalCm(point, face, garment.chestWidthCm, referenceSize);
         return (
           <g key={point}>

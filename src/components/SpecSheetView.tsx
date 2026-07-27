@@ -207,13 +207,20 @@ export function SpecSheetView({ pack }: { pack: TechPack }) {
           </div>
         </div>
 
-        <img
-          src={`${import.meta.env.BASE_URL}legend.png`}
-          alt="Reference point to position text — legend"
-          width={251}
-          height={54}
-          className="mb-8"
-        />
+        <div className="mb-8 flex items-end gap-4">
+          <img
+            src={`${import.meta.env.BASE_URL}legend.png`}
+            alt="Reference point to position text — legend"
+            width={251}
+            height={54}
+          />
+          <img
+            src={`${import.meta.env.BASE_URL}legend2.png`}
+            alt="Text placement example — legend"
+            width={84}
+            height={54}
+          />
+        </div>
 
         <h2 className="mb-3 border-b-2 border-rose-600 pb-1 text-sm font-bold uppercase tracking-widest text-neutral-900">
           02 — Technical specifications

@@ -13,6 +13,10 @@ interface HorizontalGuideDef {
   imgDY: number;
   /** Half-span from the vertical centerline, in the same reference-image px. */
   imgHalfWidth: number;
+  /** Extra downward shift in real local cm, applied on top of the pixel-based position —
+   *  a flat cm offset (unlike imgDY) stays exactly the same number of cm at every size, since
+   *  imgDY's own px-to-cm scale varies with the garment's chest width. Defaults to 0. */
+  offsetCm?: number;
 }
 
 interface VerticalGuideDef {
@@ -40,13 +44,22 @@ export const MEASUREMENT_GUIDES: Partial<Record<string, GuideDef[]>> = {
     { orientation: 'vertical', face: 'back', color: '#16a34a', imgDX: 0, imgDYTop: -11, imgDYBottom: 240 },
   ],
   D: [
-    { orientation: 'horizontal', face: 'front', color: '#2563eb', imgDY: 70, imgHalfWidth: 125.5 },
+    { orientation: 'horizontal', face: 'front', color: '#2563eb', imgDY: 70, imgHalfWidth: 125.5, offsetCm: 20 },
     // Placed at the same real-cm distance below guide A's top as on the front (123px on the
     // front's own scale), converted to the back image's own calibration — not eyeballed
     // pixels, since the two reference images aren't drawn to the same proportions.
-    { orientation: 'horizontal', face: 'back', color: '#2563eb', imgDY: 87, imgHalfWidth: 99.5 },
+    { orientation: 'horizontal', face: 'back', color: '#2563eb', imgDY: 87, imgHalfWidth: 99.5, offsetCm: 20 },
   ],
 };
+
+/** The local-cm y-coordinate a horizontal guide (e.g. guide D) is actually drawn at — the raw
+ *  pixel-based position converted to cm via the same per-size/per-face scale as the reference
+ *  artwork, plus a flat cm offset (if any) that stays constant across sizes. */
+export function guideHorizontalLocalY(point: string, face: Face, chestWidthCm: number): number {
+  const def = MEASUREMENT_GUIDES[point]?.find((d) => d.face === face);
+  if (!def || def.orientation !== 'horizontal') return 0;
+  return def.imgDY * templateScale(chestWidthCm, face) + (def.offsetCm ?? 0);
+}
 
 /** Looks up the cm value for a measurement point at the given reference size, from the same
  *  chart shown on the Input tab. */
