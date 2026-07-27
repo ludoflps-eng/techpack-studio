@@ -289,7 +289,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'techpack-studio',
-      version: 11,
+      version: 12,
       migrate: (persisted, version) => {
         // Legacy pack shapes vary release to release (frontText -> frontTexts, fields added to
         // items, etc.), so this whole function works loosely-typed rather than fighting the
@@ -375,6 +375,14 @@ export const useStore = create<StoreState>()(
             backTexts: Array.isArray(p.backTexts)
               ? p.backTexts.map((t: any) => ({ ...createFrontTextDefaults(), ...t, id: t.id ?? nanoid(8) }))
               : [createFrontTextItem()],
+          }));
+        }
+        if (version < 12 && state?.packs) {
+          // Front/back texts can now auto-center horizontally on guide A.
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontTexts: (p.frontTexts ?? []).map((t: any) => ({ ...createFrontTextDefaults(), ...t })),
+            backTexts: (p.backTexts ?? []).map((t: any) => ({ ...createFrontTextDefaults(), ...t })),
           }));
         }
         return state;

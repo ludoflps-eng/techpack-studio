@@ -125,6 +125,12 @@ export interface FrontTextSpec {
   /** cm this text sits to the right of its anchor target, along the triangle axis (negative =
    *  left). Only used when anchorTextId is set. */
   anchorRightCm: number;
+  /** When true, the text's horizontal (triangle-axis) position is computed automatically so its
+   *  print box sits centered on guide A (the garment's vertical centerline) instead of using
+   *  triangleCm/anchorRightCm — recomputed live from the text's actual width, so it stays
+   *  centered as content, font, size, or case change. Vertical (circle-axis) position is
+   *  unaffected and still works normally, including anchoring. */
+  centerHorizontally: boolean;
 }
 
 export interface TechPack {

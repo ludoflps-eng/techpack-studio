@@ -123,7 +123,14 @@ export function ShirtCanvas({
               face={face}
               garment={garment}
               referenceSize={effectiveReferenceSize}
-              frontText={{ ...ft, ...resolveFrontTextPosition(ft, faceTexts) }}
+              frontText={{
+                ...ft,
+                ...resolveFrontTextPosition(ft, faceTexts, {
+                  face,
+                  chestWidthCm: garment.chestWidthCm,
+                  referenceSize: effectiveReferenceSize,
+                }),
+              }}
             />
           ))}
       </g>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FONT_OPTIONS, type FrontTextSpec, type TextCase } from '../../types';
 import { Field, NumberInput, Select, TextInput, Textarea } from '../ui/Field';
 import { lookupPantone } from '../../lib/pantone';
+import { centeredTriangleCm, type FaceGarmentCtx } from '../../lib/frontTextLayout';
 import { PantonePicker } from './PantonePicker';
 
 /** A small two-way toggle used in place of a full-width labeled dropdown, to keep the position
@@ -39,14 +40,18 @@ function FrontTextItemForm({
   frontText,
   onChange,
   anchorOptions,
+  ctx,
 }: {
   frontText: FrontTextSpec;
   onChange: (patch: Partial<FrontTextSpec>) => void;
   /** Other texts in the same pack this one could anchor its position to (never includes itself). */
   anchorOptions: { id: string; label: string }[];
+  /** Face/garment context needed to show the live cm value "Center on Guide A" resolves to. */
+  ctx: FaceGarmentCtx;
 }) {
   const match = lookupPantone(frontText.textPantone);
   const unresolved = frontText.textPantone.trim() !== '' && !match;
+  const centeredCm = frontText.centerHorizontally ? centeredTriangleCm(frontText, ctx) : null;
 
   return (
     <div className="space-y-2.5">
@@ -157,10 +162,14 @@ function FrontTextItemForm({
               />
             </Field>
             <Field label="Triangle (cm)">
-              <NumberInput
-                value={frontText.triangleCm}
-                onChange={(e) => onChange({ triangleCm: Number(e.target.value) })}
-              />
+              {centeredCm !== null ? (
+                <NumberInput value={Number(centeredCm.toFixed(2))} disabled title="Computed automatically — Center on Guide A is on" />
+              ) : (
+                <NumberInput
+                  value={frontText.triangleCm}
+                  onChange={(e) => onChange({ triangleCm: Number(e.target.value) })}
+                />
+              )}
             </Field>
           </div>
         ) : (
@@ -183,25 +192,46 @@ function FrontTextItemForm({
                 />
               </Field>
               <Field label="Left(-)/Right(+)">
-                <NumberInput
-                  value={frontText.anchorRightCm}
-                  onChange={(e) => onChange({ anchorRightCm: Number(e.target.value) })}
-                />
+                {centeredCm !== null ? (
+                  <NumberInput value={Number(centeredCm.toFixed(2))} disabled title="Computed automatically — Center on Guide A is on" />
+                ) : (
+                  <NumberInput
+                    value={frontText.anchorRightCm}
+                    onChange={(e) => onChange({ anchorRightCm: Number(e.target.value) })}
+                  />
+                )}
               </Field>
             </div>
           </div>
         )}
       </div>
 
-      <label className="flex items-center gap-2 text-xs font-medium text-neutral-600" title="Draws 4 fine red lines flush against the text's actual rendered edges, with measurements, to cross-check its real on-shirt size.">
-        <input
-          type="checkbox"
-          checked={frontText.showLimits}
-          onChange={(e) => onChange({ showLimits: e.target.checked })}
-          className="h-4 w-4 accent-rose-600"
-        />
-        Show text limits
-      </label>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+        <label
+          className="flex items-center gap-2 text-xs font-medium text-neutral-600"
+          title="Draws 4 fine red lines flush against the text's actual rendered edges, with measurements, to cross-check its real on-shirt size."
+        >
+          <input
+            type="checkbox"
+            checked={frontText.showLimits}
+            onChange={(e) => onChange({ showLimits: e.target.checked })}
+            className="h-4 w-4 accent-rose-600"
+          />
+          Show text limits
+        </label>
+        <label
+          className="flex items-center gap-2 text-xs font-medium text-neutral-600"
+          title="Automatically sets the horizontal (triangle) position so the text sits centered on guide A, the garment's vertical centerline — recalculated live as the text, font, size, or case change."
+        >
+          <input
+            type="checkbox"
+            checked={frontText.centerHorizontally}
+            onChange={(e) => onChange({ centerHorizontally: e.target.checked })}
+            className="h-4 w-4 accent-rose-600"
+          />
+          Center on Guide A
+        </label>
+      </div>
     </div>
   );
 }
@@ -230,11 +260,14 @@ export function FrontTextForm({
   onAdd,
   onChange,
   onRemove,
+  ctx,
 }: {
   frontTexts: FrontTextSpec[];
   onAdd: () => void;
   onChange: (id: string, patch: Partial<FrontTextSpec>) => void;
   onRemove: (id: string) => void;
+  /** Face/garment context needed to show the live cm value "Center on Guide A" resolves to. */
+  ctx: FaceGarmentCtx;
 }) {
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set(frontTexts[0] ? [frontTexts[0].id] : []));
   const knownIds = useRef<Set<string>>(new Set(frontTexts.map((t) => t.id)));
@@ -295,6 +328,7 @@ export function FrontTextForm({
                   anchorOptions={frontTexts
                     .map((t, j) => ({ id: t.id, label: `Text ${j + 1}` }))
                     .filter((o) => o.id !== frontText.id)}
+                  ctx={ctx}
                 />
               </div>
             )}

@@ -1,5 +1,14 @@
-import { fontCss, type FrontTextSpec } from '../types';
+import { fontCss, type Face, type FrontTextSpec } from '../types';
+import { guideDLeftLocalX } from './measurementGuides';
 import { splitLines } from './text';
+
+/** The garment context needed to place a text on a specific face/size — everything
+ *  resolveFrontTextPosition needs beyond the texts themselves to compute a centered position. */
+export interface FaceGarmentCtx {
+  face: Face;
+  chestWidthCm: number;
+  referenceSize: string;
+}
 
 export interface ResolvedFrontTextPosition {
   circleCm: number;
@@ -54,6 +63,19 @@ export function printBoxSizeCm(text: FrontTextSpec): { widthCm: number; heightCm
   };
 }
 
+/** The triangle-axis (horizontal) cm value that puts `text`'s actual print-box width centered on
+ *  guide A — the garment's vertical centerline (x = 0 in local cm) — on the given face/size. Used
+ *  both to render a centered text and to show the live equivalent cm value in the form, so the
+ *  two can never disagree. */
+export function centeredTriangleCm(text: FrontTextSpec, ctx: FaceGarmentCtx): number {
+  const { widthCm } = printBoxSizeCm(text);
+  return -guideDLeftLocalX(ctx.face, ctx.chestWidthCm, ctx.referenceSize) - widthCm / 2;
+}
+
+function rawPosition(text: FrontTextSpec): ResolvedFrontTextPosition {
+  return { circleCm: text.circleCm, triangleCm: text.triangleCm };
+}
+
 /**
  * Resolves a front text's actual (circle, triangle) position, following its anchor chain (if
  * any) to another text in the same pack. An anchored text sits `anchorBelowCm` away from that
@@ -66,22 +88,39 @@ export function printBoxSizeCm(text: FrontTextSpec): { widthCm: number; heightCm
  * Falls back to the text's own absolute circleCm/triangleCm if it isn't anchored, its target is
  * missing (e.g. deleted), or the anchor chain cycles back on itself — `visiting` tracks the ids
  * already being resolved so a cycle (A anchored to B anchored back to A) can't recurse forever.
+ *
+ * If `text.centerHorizontally` is set, the resolved triangleCm is always overridden to the
+ * centered value regardless of anchor/absolute mode — vertical (circleCm) position from the
+ * anchor chain or absolute value is unaffected, so a text can be both anchored vertically to
+ * another text AND centered horizontally at the same time.
  */
 export function resolveFrontTextPosition(
   text: FrontTextSpec,
   allTexts: FrontTextSpec[],
+  ctx: FaceGarmentCtx,
   visiting: Set<string> = new Set()
 ): ResolvedFrontTextPosition {
+  const base = resolveBasePosition(text, allTexts, ctx, visiting);
+  if (!text.centerHorizontally) return base;
+  return { circleCm: base.circleCm, triangleCm: centeredTriangleCm(text, ctx) };
+}
+
+function resolveBasePosition(
+  text: FrontTextSpec,
+  allTexts: FrontTextSpec[],
+  ctx: FaceGarmentCtx,
+  visiting: Set<string>
+): ResolvedFrontTextPosition {
   if (!text.anchorTextId || visiting.has(text.id)) {
-    return { circleCm: text.circleCm, triangleCm: text.triangleCm };
+    return rawPosition(text);
   }
   const target = allTexts.find((t) => t.id === text.anchorTextId);
   if (!target || target.id === text.id) {
-    return { circleCm: text.circleCm, triangleCm: text.triangleCm };
+    return rawPosition(text);
   }
   const nextVisiting = new Set(visiting);
   nextVisiting.add(text.id);
-  const targetPos = resolveFrontTextPosition(target, allTexts, nextVisiting);
+  const targetPos = resolveFrontTextPosition(target, allTexts, ctx, nextVisiting);
   return {
     circleCm: targetPos.circleCm + text.anchorBelowCm,
     triangleCm: targetPos.triangleCm + text.anchorRightCm,

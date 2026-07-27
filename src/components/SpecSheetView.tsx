@@ -4,7 +4,7 @@ import { fontCss } from '../types';
 import { ShirtCanvas } from './canvas/ShirtCanvas';
 import { zoneRect } from '../lib/geometry';
 import { alignmentLabel, positionLabel, techniqueLabel, uniqueInks } from '../lib/specDerived';
-import { printBoxSizeCm, resolveFrontTextPosition } from '../lib/frontTextLayout';
+import { printBoxSizeCm, resolveFrontTextPosition, type FaceGarmentCtx } from '../lib/frontTextLayout';
 import { createFrontTextDefaults } from '../factories';
 import { MeasurementGuideControl, POINTS as MEASUREMENT_POINTS } from './forms/MeasurementGuideControl';
 import { OversizeSpecDiagram } from './OversizeSpecDiagram';
@@ -70,13 +70,21 @@ function TriangleIcon() {
 /** One row-set per non-empty front (or back) text: its content, ink color, and resolved (circle,
  *  triangle) position — resolved rather than raw, so an anchored text reports where it actually
  *  ends up, not just its own stored offset. */
-function frontTextRecapRows(texts: FrontTextSpec[]): [string, ReactNode][] {
+function frontTextRecapRows(texts: FrontTextSpec[], ctx: FaceGarmentCtx): [string, ReactNode][] {
   const rows: [string, ReactNode][] = [];
   texts.forEach((text, i) => {
     if (text.content.trim() === '') return;
     const n = i + 1;
-    const { circleCm, triangleCm } = resolveFrontTextPosition(text, texts);
+    const { circleCm, triangleCm } = resolveFrontTextPosition(text, texts, ctx);
+    // Rounded for display only — centered positions are computed from real text measurements
+    // and land on long floats (e.g. 19.561025943396228), unlike hand-typed absolute/anchor
+    // values which are already whole numbers most of the time.
+    const circleCmRounded = Math.round(circleCm * 10) / 10;
+    const triangleCmRounded = Math.round(triangleCm * 10) / 10;
+    const caseLabel = text.textCase === 'uppercase' ? 'UPPER' : text.textCase === 'lowercase' ? 'lower' : 'As typed';
     rows.push([`Text ${n}`, text.content.split('\n').join(' / ')]);
+    rows.push([`Text ${n} - Font`, fontCss(text.font).label]);
+    rows.push([`Text ${n} - Case`, caseLabel]);
     rows.push([
       `Text ${n} - Color`,
       <span className="inline-flex items-center gap-2">
@@ -88,13 +96,13 @@ function frontTextRecapRows(texts: FrontTextSpec[]): [string, ReactNode][] {
     rows.push([
       `Text ${n} - Position (Y — circle)`,
       <span className="inline-flex items-center gap-2">
-        <CircleIcon /> {circleCm} cm
+        <CircleIcon /> {circleCmRounded} cm
       </span>,
     ]);
     rows.push([
       `Text ${n} - Position (X — triangle)`,
       <span className="inline-flex items-center gap-2">
-        <TriangleIcon /> {triangleCm} cm
+        <TriangleIcon /> {triangleCmRounded} cm
       </span>,
     ]);
     const { widthCm, heightCm } = printBoxSizeCm(text);
@@ -112,8 +120,16 @@ export function SpecSheetView({ pack }: { pack: TechPack }) {
   // be missing, field by field, so this never crashes regardless of migration timing.
   const frontTexts = (pack.frontTexts ?? []).map((t) => ({ ...createFrontTextDefaults(), ...t }));
   const backTexts = (pack.backTexts ?? []).map((t) => ({ ...createFrontTextDefaults(), ...t }));
-  const frontTextRows = frontTextRecapRows(frontTexts);
-  const backTextRows = frontTextRecapRows(backTexts);
+  const frontTextRows = frontTextRecapRows(frontTexts, {
+    face: 'front',
+    chestWidthCm: pack.garment.chestWidthCm,
+    referenceSize: pack.referenceSize,
+  });
+  const backTextRows = frontTextRecapRows(backTexts, {
+    face: 'back',
+    chestWidthCm: pack.garment.chestWidthCm,
+    referenceSize: pack.referenceSize,
+  });
 
   // Grid lines and measurement guides are display preferences for reviewing this document, not
   // part of the tech pack's own data — kept local here (never persisted, never touching the

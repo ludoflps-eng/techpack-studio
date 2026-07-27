@@ -115,6 +115,7 @@ export function DesignView({ pack }: { pack: TechPack }) {
               onAdd={() => store.addFrontText(pack.id)}
               onChange={(textId, patch) => store.updateFrontText(pack.id, textId, patch)}
               onRemove={(textId) => store.removeFrontText(pack.id, textId)}
+              ctx={{ face: 'front', chestWidthCm: pack.garment.chestWidthCm, referenceSize: pack.referenceSize }}
             />
           )}
 
@@ -124,6 +125,7 @@ export function DesignView({ pack }: { pack: TechPack }) {
               onAdd={() => store.addBackText(pack.id)}
               onChange={(textId, patch) => store.updateBackText(pack.id, textId, patch)}
               onRemove={(textId) => store.removeBackText(pack.id, textId)}
+              ctx={{ face: 'back', chestWidthCm: pack.garment.chestWidthCm, referenceSize: pack.referenceSize }}
             />
           )}
 
