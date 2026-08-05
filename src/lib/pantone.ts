@@ -1127,6 +1127,11 @@ const PANTONE_CATEGORIES: PantoneCategory[] = [
   {
     category: 'Grays / Blacks',
     swatches: [
+      // Plain neutral White/Black, added by request — not from the source chart (it's a print-ink
+      // reference, so it has no swatch for white/paper, and its "Black"/"Black N C" entries are
+      // all subtly warm- or cool-tinted rich blacks rather than a pure neutral).
+      { code: 'WHITE', hex: '#ffffff', name: 'White' },
+      { code: 'BLACK', hex: '#000000', name: 'Black' },
       { code: '415 C', hex: '#afaca0', name: 'Light Gray' },
       { code: '416 C', hex: '#9c998a', name: 'Gray' },
       { code: '420 C', hex: '#e2e2e3', name: 'Off White' },

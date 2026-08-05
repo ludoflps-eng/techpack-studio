@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { FONT_OPTIONS, type FrontTextSpec, type TextCase } from '../../types';
 import { Field, NumberInput, Select, TextInput, Textarea } from '../ui/Field';
 import { lookupPantone } from '../../lib/pantone';
@@ -31,6 +31,42 @@ function SegmentedToggle<T extends string>({
         </button>
       ))}
     </div>
+  );
+}
+
+/** A small square toggle button for an independent (non-exclusive) style flag — Bold/Italic/
+ *  Underline can each be on or off regardless of the others, unlike SegmentedToggle's mutually
+ *  exclusive options. The button's own label is rendered in the style it toggles, as a visual
+ *  preview of what it does. */
+function StyleToggleButton({
+  active,
+  onClick,
+  label,
+  style,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  style: CSSProperties;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      aria-pressed={active}
+      className={`flex h-9 w-9 items-center justify-center rounded-md border text-sm ${
+        active
+          ? 'border-rose-600 bg-rose-600 text-white'
+          : 'border-neutral-300 text-neutral-600 hover:bg-neutral-50'
+      }`}
+      style={style}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -81,7 +117,38 @@ function FrontTextItemForm({
             <option value="lowercase">lower</option>
           </Select>
         </Field>
-        <Field label="Font">
+        <Field label="Style">
+          <div className="flex h-9 items-center gap-1">
+            <StyleToggleButton
+              active={frontText.bold}
+              onClick={() => onChange({ bold: !frontText.bold })}
+              label="Bold"
+              style={{ fontWeight: 700 }}
+            >
+              B
+            </StyleToggleButton>
+            <StyleToggleButton
+              active={frontText.italic}
+              onClick={() => onChange({ italic: !frontText.italic })}
+              label="Italic"
+              style={{ fontStyle: 'italic' }}
+            >
+              I
+            </StyleToggleButton>
+            <StyleToggleButton
+              active={frontText.underline}
+              onClick={() => onChange({ underline: !frontText.underline })}
+              label="Underline"
+              style={{ textDecoration: 'underline' }}
+            >
+              U
+            </StyleToggleButton>
+          </div>
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <Field label="Font" className="col-span-3">
           <Select value={frontText.font} onChange={(e) => onChange({ font: e.target.value })}>
             {FONT_OPTIONS.map((f) => (
               <option key={f.value} value={f.value}>

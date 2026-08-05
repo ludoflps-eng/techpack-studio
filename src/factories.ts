@@ -70,6 +70,9 @@ export function createFrontTextDefaults(): Omit<FrontTextSpec, 'id'> {
     anchorBelowCm: 0,
     anchorRightCm: 0,
     centerHorizontally: false,
+    bold: false,
+    italic: false,
+    underline: false,
   };
 }
 

@@ -131,6 +131,13 @@ export interface FrontTextSpec {
    *  centered as content, font, size, or case change. Vertical (circle-axis) position is
    *  unaffected and still works normally, including anchoring. */
   centerHorizontally: boolean;
+  /** When true, renders at a bold weight (700) regardless of the chosen font's own base weight. */
+  bold: boolean;
+  /** When true, renders slanted (italic, or a synthesized oblique slant for fonts with no italic
+   *  variant of their own). */
+  italic: boolean;
+  /** When true, draws a line under the text. */
+  underline: boolean;
 }
 
 export interface TechPack {

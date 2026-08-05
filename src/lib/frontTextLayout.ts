@@ -35,10 +35,27 @@ function getMeasureContext(): CanvasRenderingContext2D {
  *  Unlike SVG's `getBBox()` — which some browsers/fonts report as a loose, font-metrics-based
  *  box (full line height, not the glyphs' actual ink) — `actualBoundingBox*` is specced to be
  *  the tight bounding box of the rendered glyphs, so it's the reliable source of truth here. */
-export function measureInk(text: string, fontSizePx: number, fontFamily: string, fontWeight: number) {
+export function measureInk(
+  text: string,
+  fontSizePx: number,
+  fontFamily: string,
+  fontWeight: number,
+  fontStyle: 'normal' | 'italic' = 'normal'
+) {
   const ctx = getMeasureContext();
-  ctx.font = `${fontWeight} ${fontSizePx}px ${fontFamily}`;
+  ctx.font = `${fontStyle} ${fontWeight} ${fontSizePx}px ${fontFamily}`;
   return ctx.measureText(text);
+}
+
+/** The bold/italic-aware font weight and style a text actually renders at — `bold`/`italic`
+ *  override the chosen font's own base weight, so Canvas measurement and SVG rendering always
+ *  agree on which weight/style is really in effect. */
+export function effectiveFontWeight(text: FrontTextSpec): number {
+  return text.bold ? 700 : fontCss(text.font).weight;
+}
+
+export function effectiveFontStyle(text: FrontTextSpec): 'normal' | 'italic' {
+  return text.italic ? 'italic' : 'normal';
 }
 
 /** The actual rendered print-box size for a front/back text item — the same thing "Show text
@@ -48,10 +65,12 @@ export function measureInk(text: string, fontSizePx: number, fontFamily: string,
  *  drift out of sync with what's actually drawn. */
 export function printBoxSizeCm(text: FrontTextSpec): { widthCm: number; heightCm: number } {
   const lines = splitLines(text.content, text.textCase);
-  const { cssFamily: fontFamily, weight: fontWeight } = fontCss(text.font);
+  const { cssFamily: fontFamily } = fontCss(text.font);
+  const fontWeight = effectiveFontWeight(text);
+  const fontStyle = effectiveFontStyle(text);
   const widths = lines.map((line) => {
     if (!line || text.textHeightCm <= 0) return 0;
-    const m = measureInk(line, MEASURE_REF_PX, fontFamily, fontWeight);
+    const m = measureInk(line, MEASURE_REF_PX, fontFamily, fontWeight, fontStyle);
     const inkHeightPx = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
     if (!(inkHeightPx > 0)) return 0;
     const scale = text.textHeightCm / inkHeightPx;

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { fontCss, type Face, type FrontTextSpec, type GarmentSpec } from '../../types';
 import { guideABottomLocalY, guideDLeftLocalX } from '../../lib/measurementGuides';
-import { measureInk } from '../../lib/frontTextLayout';
+import { effectiveFontStyle, effectiveFontWeight, measureInk } from '../../lib/frontTextLayout';
 import { splitLines } from '../../lib/text';
 
 /** Reference font size (CSS px) used only to ask the browser's text-shaping engine for the
@@ -29,10 +29,11 @@ function layoutLine(
   anchorBottomY: number,
   textHeightCm: number,
   fontFamily: string,
-  fontWeight: number
+  fontWeight: number,
+  fontStyle: 'normal' | 'italic'
 ): LineLayout | null {
   if (!text || textHeightCm <= 0) return null;
-  const m = measureInk(text, MEASURE_REF_PX, fontFamily, fontWeight);
+  const m = measureInk(text, MEASURE_REF_PX, fontFamily, fontWeight, fontStyle);
   const inkHeightPx = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
   if (!(inkHeightPx > 0)) return null;
   const scale = textHeightCm / inkHeightPx; // local-cm units per reference px, for this font/text
@@ -55,6 +56,8 @@ function AnchoredTextLine({
   textHeightCm,
   fontFamily,
   fontWeight,
+  fontStyle,
+  underline,
   fill,
 }: {
   text: string;
@@ -63,11 +66,13 @@ function AnchoredTextLine({
   textHeightCm: number;
   fontFamily: string;
   fontWeight: number;
+  fontStyle: 'normal' | 'italic';
+  underline: boolean;
   fill: string;
 }) {
   const layout = useMemo(
-    () => layoutLine(text, anchorX, anchorBottomY, textHeightCm, fontFamily, fontWeight),
-    [text, anchorX, anchorBottomY, textHeightCm, fontFamily, fontWeight]
+    () => layoutLine(text, anchorX, anchorBottomY, textHeightCm, fontFamily, fontWeight, fontStyle),
+    [text, anchorX, anchorBottomY, textHeightCm, fontFamily, fontWeight, fontStyle]
   );
 
   if (!layout) return null;
@@ -78,6 +83,8 @@ function AnchoredTextLine({
       textAnchor="start"
       fontFamily={fontFamily}
       fontWeight={fontWeight}
+      fontStyle={fontStyle}
+      textDecoration={underline ? 'underline' : undefined}
       fontSize={layout.fontSize}
       fill={fill}
       xmlSpace="preserve"
@@ -142,7 +149,9 @@ export function FrontTextOverlay({
   const lines = splitLines(frontText.content, frontText.textCase);
   const anchorX = guideDLeftLocalX(face, garment.chestWidthCm, referenceSize) + frontText.triangleCm;
   const anchorBottomY = guideABottomLocalY(face, garment.chestWidthCm, referenceSize) - frontText.circleCm;
-  const { cssFamily: fontFamily, weight: fontWeight } = fontCss(frontText.font);
+  const { cssFamily: fontFamily } = fontCss(frontText.font);
+  const fontWeight = effectiveFontWeight(frontText);
+  const fontStyle = effectiveFontStyle(frontText);
 
   // Keyed by line index rather than reset-on-content-change: a stale entry from a previously
   // longer text is simply never read once `lines` shrinks, so there's no need to clear it.
@@ -154,7 +163,8 @@ export function FrontTextOverlay({
         anchorBottomY + i * frontText.textHeightCm,
         frontText.textHeightCm,
         fontFamily,
-        fontWeight
+        fontWeight,
+        fontStyle
       )?.widthCm ?? null
   );
   const allMeasured = frontText.showLimits && widths.every((w): w is number => w !== null);
@@ -171,6 +181,8 @@ export function FrontTextOverlay({
           textHeightCm={frontText.textHeightCm}
           fontFamily={fontFamily}
           fontWeight={fontWeight}
+          fontStyle={fontStyle}
+          underline={frontText.underline}
           fill={frontText.textHex}
         />
       ))}
