@@ -17,7 +17,6 @@ export function GarmentForm({
   onSizeChange: (size: SizeLabel) => void;
 }) {
   const match = lookupPantone(garment.fabricPantone);
-  const unresolved = garment.fabricPantone.trim() !== '' && !match;
 
   return (
     <div className="space-y-3">
@@ -68,26 +67,21 @@ export function GarmentForm({
             onSelect={(s) => onChange({ fabricPantone: s.code, fabricHex: s.hex, fabricColorName: s.name })}
           />
           <TextInput
-            placeholder="e.g. 7528 C"
+            placeholder="Pick a color →"
             value={garment.fabricPantone}
-            onChange={(e) => {
-              const ref = e.target.value;
-              const m = lookupPantone(ref);
-              onChange(m ? { fabricPantone: ref, fabricHex: m.hex, fabricColorName: m.name } : { fabricPantone: ref });
-            }}
+            readOnly
+            title="Set by picking a color from the Pantone picker — not typed directly"
+            className="cursor-default bg-neutral-50 text-neutral-500"
           />
         </div>
-        {unresolved && (
-          <p className="mt-1 text-xs text-amber-600">
-            Not in our reference list — swatch and name are unchanged. Enter the color name manually below.
-          </p>
-        )}
       </Field>
 
       <Field label="Fabric color name">
         <TextInput
           value={garment.fabricColorName}
-          onChange={(e) => onChange({ fabricColorName: e.target.value })}
+          readOnly
+          title="Set by picking a color from the Pantone picker — not typed directly"
+          className="cursor-default bg-neutral-50 text-neutral-500"
         />
       </Field>
 

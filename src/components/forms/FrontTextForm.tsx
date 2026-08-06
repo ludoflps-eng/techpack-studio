@@ -86,7 +86,6 @@ function FrontTextItemForm({
   ctx: FaceGarmentCtx;
 }) {
   const match = lookupPantone(frontText.textPantone);
-  const unresolved = frontText.textPantone.trim() !== '' && !match;
   const centeredCm = frontText.centerHorizontally ? centeredTriangleCm(frontText, ctx) : null;
 
   return (
@@ -178,28 +177,23 @@ function FrontTextItemForm({
               onSelect={(s) => onChange({ textPantone: s.code, textHex: s.hex, textColorName: s.name })}
             />
             <TextInput
-              placeholder="e.g. 7528 C"
+              placeholder="Pick a color →"
               value={frontText.textPantone}
-              onChange={(e) => {
-                const ref = e.target.value;
-                const m = lookupPantone(ref);
-                onChange(m ? { textPantone: ref, textHex: m.hex, textColorName: m.name } : { textPantone: ref });
-              }}
+              readOnly
+              title="Set by picking a color from the Pantone picker — not typed directly"
+              className="cursor-default bg-neutral-50 text-neutral-500"
             />
           </div>
         </Field>
         <Field label="Color name">
           <TextInput
             value={frontText.textColorName}
-            onChange={(e) => onChange({ textColorName: e.target.value })}
+            readOnly
+            title="Set by picking a color from the Pantone picker — not typed directly"
+            className="cursor-default bg-neutral-50 text-neutral-500"
           />
         </Field>
       </div>
-      {unresolved && (
-        <p className="text-xs text-amber-600">
-          Pantone not recognized — swatch unchanged, enter the color name manually.
-        </p>
-      )}
 
       <div>
         <div className="mb-1.5 flex items-center justify-between">
