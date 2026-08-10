@@ -171,7 +171,7 @@ export function FrontTextOverlay({
   const maxWidthCm = allMeasured ? Math.max(...widths) : 0;
 
   return (
-    <g pointerEvents="none">
+    <g pointerEvents="none" transform={`rotate(${frontText.rotationDeg ?? 0} ${anchorX} ${anchorBottomY})`}>
       {lines.map((line, i) => (
         <AnchoredTextLine
           key={i}

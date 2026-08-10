@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import type { TechPack } from '../types';
 import { useStore } from '../store';
-import { createFrontTextDefaults } from '../factories';
+import { createFrontTextDefaults, createLogoDefaults } from '../factories';
 import { ShirtCanvas } from './canvas/ShirtCanvas';
 import { GarmentForm } from './forms/GarmentForm';
 import { FrontTextForm } from './forms/FrontTextForm';
+import { LogoForm } from './forms/LogoForm';
 import { NotesForm } from './forms/NotesForm';
 import { MeasurementGuideControl, POINTS as MEASUREMENT_POINTS } from './forms/MeasurementGuideControl';
 
-type Section = 'garment' | 'fronttext' | 'backtext' | 'notes';
+type Section = 'garment' | 'fronttext' | 'backtext' | 'frontlogo' | 'backlogo' | 'notes';
 
 export function DesignView({ pack }: { pack: TechPack }) {
   const store = useStore();
@@ -19,6 +20,8 @@ export function DesignView({ pack }: { pack: TechPack }) {
   // crashes the view.
   const frontTexts = (pack.frontTexts ?? []).map((t) => ({ ...createFrontTextDefaults(), ...t }));
   const backTexts = (pack.backTexts ?? []).map((t) => ({ ...createFrontTextDefaults(), ...t }));
+  const frontLogos = (pack.frontLogos ?? []).map((l) => ({ ...createLogoDefaults(), ...l }));
+  const backLogos = (pack.backLogos ?? []).map((l) => ({ ...createLogoDefaults(), ...l }));
   const [section, setSection] = useState<Section>('garment');
   const [guidesEnabled, setGuidesEnabled] = useState(false);
   const [selectedPoints, setSelectedPoints] = useState<string[]>(MEASUREMENT_POINTS);
@@ -27,6 +30,8 @@ export function DesignView({ pack }: { pack: TechPack }) {
     { id: 'garment', label: 'Garment & fabric' },
     { id: 'fronttext', label: 'Front text' },
     { id: 'backtext', label: 'Back text' },
+    { id: 'frontlogo', label: 'Front image' },
+    { id: 'backlogo', label: 'Back image' },
     { id: 'notes', label: 'Production notes' },
   ];
 
@@ -63,6 +68,7 @@ export function DesignView({ pack }: { pack: TechPack }) {
               selectedPoints={selectedPoints}
               referenceSize={pack.referenceSize}
               frontTexts={frontTexts}
+              frontLogos={frontLogos}
             />
           </div>
           <div className="rounded-xl border border-neutral-200 bg-white p-1">
@@ -77,6 +83,7 @@ export function DesignView({ pack }: { pack: TechPack }) {
               selectedPoints={selectedPoints}
               referenceSize={pack.referenceSize}
               backTexts={backTexts}
+              backLogos={backLogos}
             />
           </div>
         </div>
@@ -115,6 +122,8 @@ export function DesignView({ pack }: { pack: TechPack }) {
               onAdd={() => store.addFrontText(pack.id)}
               onChange={(textId, patch) => store.updateFrontText(pack.id, textId, patch)}
               onRemove={(textId) => store.removeFrontText(pack.id, textId)}
+              onBringToFront={(textId) => store.bringLayerToFront(pack.id, 'front', 'text', textId)}
+              onSendToBack={(textId) => store.sendLayerToBack(pack.id, 'front', 'text', textId)}
               ctx={{ face: 'front', chestWidthCm: pack.garment.chestWidthCm, referenceSize: pack.referenceSize }}
             />
           )}
@@ -125,7 +134,31 @@ export function DesignView({ pack }: { pack: TechPack }) {
               onAdd={() => store.addBackText(pack.id)}
               onChange={(textId, patch) => store.updateBackText(pack.id, textId, patch)}
               onRemove={(textId) => store.removeBackText(pack.id, textId)}
+              onBringToFront={(textId) => store.bringLayerToFront(pack.id, 'back', 'text', textId)}
+              onSendToBack={(textId) => store.sendLayerToBack(pack.id, 'back', 'text', textId)}
               ctx={{ face: 'back', chestWidthCm: pack.garment.chestWidthCm, referenceSize: pack.referenceSize }}
+            />
+          )}
+
+          {section === 'frontlogo' && (
+            <LogoForm
+              logos={frontLogos}
+              onAdd={(image) => store.addFrontLogo(pack.id, image)}
+              onChange={(logoId, patch) => store.updateFrontLogo(pack.id, logoId, patch)}
+              onRemove={(logoId) => store.removeFrontLogo(pack.id, logoId)}
+              onBringToFront={(logoId) => store.bringLayerToFront(pack.id, 'front', 'logo', logoId)}
+              onSendToBack={(logoId) => store.sendLayerToBack(pack.id, 'front', 'logo', logoId)}
+            />
+          )}
+
+          {section === 'backlogo' && (
+            <LogoForm
+              logos={backLogos}
+              onAdd={(image) => store.addBackLogo(pack.id, image)}
+              onChange={(logoId, patch) => store.updateBackLogo(pack.id, logoId, patch)}
+              onRemove={(logoId) => store.removeBackLogo(pack.id, logoId)}
+              onBringToFront={(logoId) => store.bringLayerToFront(pack.id, 'back', 'logo', logoId)}
+              onSendToBack={(logoId) => store.sendLayerToBack(pack.id, 'back', 'logo', logoId)}
             />
           )}
 

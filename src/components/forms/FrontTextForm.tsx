@@ -77,6 +77,8 @@ function FrontTextItemForm({
   onChange,
   anchorOptions,
   ctx,
+  onBringToFront,
+  onSendToBack,
 }: {
   frontText: FrontTextSpec;
   onChange: (patch: Partial<FrontTextSpec>) => void;
@@ -84,6 +86,10 @@ function FrontTextItemForm({
   anchorOptions: { id: string; label: string }[];
   /** Face/garment context needed to show the live cm value "Center on Guide A" resolves to. */
   ctx: FaceGarmentCtx;
+  /** Reorders this text above/below every OTHER text/picture on the same face (compared
+   *  together), for when items overlap on the canvas. */
+  onBringToFront: () => void;
+  onSendToBack: () => void;
 }) {
   const match = lookupPantone(frontText.textPantone);
   const centeredCm = frontText.centerHorizontally ? centeredTriangleCm(frontText, ctx) : null;
@@ -267,6 +273,35 @@ function FrontTextItemForm({
         )}
       </div>
 
+      <Field label="Rotation (°, clockwise)">
+        <NumberInput
+          value={frontText.rotationDeg}
+          onChange={(e) => onChange({ rotationDeg: Number(e.target.value) })}
+        />
+      </Field>
+
+      <div>
+        <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+          Layer (if text/pictures overlap)
+        </span>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onBringToFront}
+            className="flex-1 rounded-md border border-neutral-300 py-1.5 text-xs font-medium text-neutral-600 hover:border-rose-400 hover:text-rose-600"
+          >
+            Bring to front
+          </button>
+          <button
+            type="button"
+            onClick={onSendToBack}
+            className="flex-1 rounded-md border border-neutral-300 py-1.5 text-xs font-medium text-neutral-600 hover:border-rose-400 hover:text-rose-600"
+          >
+            Send to back
+          </button>
+        </div>
+      </div>
+
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
         <label
           className="flex items-center gap-2 text-xs font-medium text-neutral-600"
@@ -321,12 +356,17 @@ export function FrontTextForm({
   onAdd,
   onChange,
   onRemove,
+  onBringToFront,
+  onSendToBack,
   ctx,
 }: {
   frontTexts: FrontTextSpec[];
   onAdd: () => void;
   onChange: (id: string, patch: Partial<FrontTextSpec>) => void;
   onRemove: (id: string) => void;
+  /** Reorders a text above/below every other text/picture on the same face. */
+  onBringToFront: (id: string) => void;
+  onSendToBack: (id: string) => void;
   /** Face/garment context needed to show the live cm value "Center on Guide A" resolves to. */
   ctx: FaceGarmentCtx;
 }) {
@@ -390,6 +430,8 @@ export function FrontTextForm({
                     .map((t, j) => ({ id: t.id, label: `Text ${j + 1}` }))
                     .filter((o) => o.id !== frontText.id)}
                   ctx={ctx}
+                  onBringToFront={() => onBringToFront(frontText.id)}
+                  onSendToBack={() => onSendToBack(frontText.id)}
                 />
               </div>
             )}

@@ -138,6 +138,54 @@ export interface FrontTextSpec {
   italic: boolean;
   /** When true, draws a line under the text. */
   underline: boolean;
+  /** Stacking order relative to every OTHER text/picture on the same face — higher renders on
+   *  top. Compared across frontTexts and frontLogos together (or backTexts/backLogos), so "bring
+   *  to front"/"send to back" can reorder a text above or below a picture, not just other texts. */
+  layerOrder: number;
+  /** Rotation in degrees (clockwise positive), applied around this text's own reference point —
+   *  the same (circle, triangle) point its position is set from — so rotating never moves that
+   *  point, only spins the text around it. */
+  rotationDeg: number;
+}
+
+/** A picture/logo placed on the front or back of the shirt — background already removed (a
+ *  transparent PNG data URL), positioned by a single reference point rather than a bounding-box
+ *  corner: `crossXPercent`/`crossYPercent` mark where, WITHIN the image itself, that reference
+ *  point sits (0-1 each way), and `circleCm`/`triangleCm` place that same point on the garment —
+ *  the same (circle, triangle) coordinate system front/back text already uses. That reference
+ *  point is drawn on the canvas as a small blue dot (matching the spec sheet's "Reference point
+ *  to position text" legend), so it's visible where the image is actually anchored, not just
+ *  where its corner happens to fall. */
+export interface LogoSpec {
+  id: string;
+  /** Background-removed image, as a data URL (PNG, with transparency) — stored inline since the
+   *  app is local-first with no backend of its own. */
+  imageDataUrl: string;
+  /** The stored image's own pixel dimensions — used to keep the aspect ratio locked when sizing
+   *  it on the garment via widthCm alone. */
+  naturalWidthPx: number;
+  naturalHeightPx: number;
+  /** Rendered width in cm; height is always derived from this via the natural aspect ratio, so
+   *  the image can never be stretched out of proportion. */
+  widthCm: number;
+  /** Where the reference point (the blue dot) sits within the image, as a 0-1 fraction of its
+   *  width/height — (0,0) is the image's top-left corner, (0.5, 0.5) its center. */
+  crossXPercent: number;
+  crossYPercent: number;
+  /** cm value of the horizontal grid line (numbered circle) the reference point sits on — same
+   *  convention as front/back text. */
+  circleCm: number;
+  /** cm value of the vertical grid line (numbered triangle) the reference point sits on — same
+   *  convention as front/back text. */
+  triangleCm: number;
+  /** Stacking order relative to every OTHER text/picture on the same face — higher renders on
+   *  top. Compared across frontTexts and frontLogos together (or backTexts/backLogos), so "bring
+   *  to front"/"send to back" can reorder a picture above or below a text, not just other
+   *  pictures. */
+  layerOrder: number;
+  /** Rotation in degrees (clockwise positive), applied around this picture's own reference point
+   *  (the blue dot) — so rotating never moves that point, only spins the image around it. */
+  rotationDeg: number;
 }
 
 export interface TechPack {
@@ -153,6 +201,8 @@ export interface TechPack {
   productionNotes: string[];
   frontTexts: FrontTextSpec[];
   backTexts: FrontTextSpec[];
+  frontLogos: LogoSpec[];
+  backLogos: LogoSpec[];
 }
 
 export const FONT_OPTIONS: { value: string; label: string; cssFamily: string; weight: number }[] = [

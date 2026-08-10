@@ -1,8 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
-import type { Face, FrontTextSpec, PrintZone, TechPack } from './types';
-import { createFrontTextDefaults, createFrontTextItem, createTechPack, createZone } from './factories';
+import type { Face, FrontTextSpec, LogoSpec, PrintZone, TechPack } from './types';
+import {
+  createFrontTextDefaults,
+  createFrontTextItem,
+  createLogoDefaults,
+  createLogoItem,
+  createTechPack,
+  createZone,
+} from './factories';
 import { SIZE_CHART, type SizeLabel } from './lib/sizeChart';
 import { countLines } from './lib/text';
 
@@ -22,6 +29,16 @@ interface StoreState {
   addBackText: (packId: string) => string;
   updateBackText: (packId: string, textId: string, patch: Partial<FrontTextSpec>) => void;
   removeBackText: (packId: string, textId: string) => void;
+  addFrontLogo: (packId: string, image: { imageDataUrl: string; naturalWidthPx: number; naturalHeightPx: number }) => string;
+  updateFrontLogo: (packId: string, logoId: string, patch: Partial<LogoSpec>) => void;
+  removeFrontLogo: (packId: string, logoId: string) => void;
+  addBackLogo: (packId: string, image: { imageDataUrl: string; naturalWidthPx: number; naturalHeightPx: number }) => string;
+  updateBackLogo: (packId: string, logoId: string, patch: Partial<LogoSpec>) => void;
+  removeBackLogo: (packId: string, logoId: string) => void;
+  /** Moves a front/back text or picture above everything else on the same face (both kinds
+   *  compared together), so overlapping items can be reordered regardless of type. */
+  bringLayerToFront: (packId: string, face: Face, kind: 'text' | 'logo', itemId: string) => void;
+  sendLayerToBack: (packId: string, face: Face, kind: 'text' | 'logo', itemId: string) => void;
   applySize: (id: string, size: SizeLabel) => void;
   importPack: (pack: TechPack) => string;
 
@@ -37,6 +54,38 @@ interface StoreState {
 
 function touch(pack: TechPack): TechPack {
   return { ...pack, updatedAt: Date.now() };
+}
+
+/** The layerOrder one above everything currently on this face (texts and pictures compared
+ *  together) — assigned to a freshly added text/picture so it starts out on top, matching how a
+ *  newly added item has always visually landed above the rest. */
+function nextTopLayerOrder(pack: TechPack, face: Face): number {
+  const texts = face === 'front' ? (pack.frontTexts ?? []) : (pack.backTexts ?? []);
+  const logos = face === 'front' ? (pack.frontLogos ?? []) : (pack.backLogos ?? []);
+  const orders = [...texts, ...logos].map((x) => x.layerOrder ?? 0);
+  return orders.length === 0 ? 0 : Math.max(...orders) + 1;
+}
+
+/** Reassigns one text/picture's layerOrder to sit above (toFront) or below (!toFront) every
+ *  OTHER text/picture on the same face — texts and pictures are compared together, so this can
+ *  move a text above a picture or vice versa, not just reorder within its own type. */
+function withReorderedLayer(
+  pack: TechPack,
+  face: Face,
+  kind: 'text' | 'logo',
+  itemId: string,
+  toFront: boolean
+): TechPack {
+  const texts = face === 'front' ? (pack.frontTexts ?? []) : (pack.backTexts ?? []);
+  const logos = face === 'front' ? (pack.frontLogos ?? []) : (pack.backLogos ?? []);
+  const orders = [...texts, ...logos].map((x) => x.layerOrder ?? 0);
+  const newOrder = orders.length === 0 ? 0 : toFront ? Math.max(...orders) + 1 : Math.min(...orders) - 1;
+  if (kind === 'text') {
+    const updated = texts.map((t) => (t.id === itemId ? { ...t, layerOrder: newOrder } : t));
+    return face === 'front' ? { ...pack, frontTexts: updated } : { ...pack, backTexts: updated };
+  }
+  const updated = logos.map((l) => (l.id === itemId ? { ...l, layerOrder: newOrder } : l));
+  return face === 'front' ? { ...pack, frontLogos: updated } : { ...pack, backLogos: updated };
 }
 
 export const useStore = create<StoreState>()(
@@ -63,6 +112,8 @@ export const useStore = create<StoreState>()(
           zones: src.zones.map((z) => ({ ...z, id: nanoid(8) })),
           frontTexts: (src.frontTexts ?? []).map((t) => ({ ...t, id: nanoid(8) })),
           backTexts: (src.backTexts ?? []).map((t) => ({ ...t, id: nanoid(8) })),
+          frontLogos: (src.frontLogos ?? []).map((l) => ({ ...l, id: nanoid(8) })),
+          backLogos: (src.backLogos ?? []).map((l) => ({ ...l, id: nanoid(8) })),
         };
         set((s) => ({ packs: [...s.packs, copy], activeId: copy.id }));
         return copy.id;
@@ -92,13 +143,16 @@ export const useStore = create<StoreState>()(
       },
 
       addFrontText: (packId) => {
-        const item = createFrontTextItem();
+        let newId = '';
         set((s) => ({
-          packs: s.packs.map((p) =>
-            p.id === packId ? touch({ ...p, frontTexts: [...p.frontTexts, item] }) : p
-          ),
+          packs: s.packs.map((p) => {
+            if (p.id !== packId) return p;
+            const item = { ...createFrontTextItem(), layerOrder: nextTopLayerOrder(p, 'front') };
+            newId = item.id;
+            return touch({ ...p, frontTexts: [...p.frontTexts, item] });
+          }),
         }));
-        return item.id;
+        return newId;
       },
 
       updateFrontText: (packId, textId, patch) => {
@@ -134,13 +188,16 @@ export const useStore = create<StoreState>()(
       },
 
       addBackText: (packId) => {
-        const item = createFrontTextItem();
+        let newId = '';
         set((s) => ({
-          packs: s.packs.map((p) =>
-            p.id === packId ? touch({ ...p, backTexts: [...(p.backTexts ?? []), item] }) : p
-          ),
+          packs: s.packs.map((p) => {
+            if (p.id !== packId) return p;
+            const item = { ...createFrontTextItem(), layerOrder: nextTopLayerOrder(p, 'back') };
+            newId = item.id;
+            return touch({ ...p, backTexts: [...(p.backTexts ?? []), item] });
+          }),
         }));
-        return item.id;
+        return newId;
       },
 
       updateBackText: (packId, textId, patch) => {
@@ -169,6 +226,98 @@ export const useStore = create<StoreState>()(
                     .filter((t) => t.id !== textId)
                     .map((t) => (t.anchorTextId === textId ? { ...t, anchorTextId: '' } : t)),
                 })
+          ),
+        }));
+      },
+
+      addFrontLogo: (packId, image) => {
+        let newId = '';
+        set((s) => ({
+          packs: s.packs.map((p) => {
+            if (p.id !== packId) return p;
+            const item = { ...createLogoItem(image), layerOrder: nextTopLayerOrder(p, 'front') };
+            newId = item.id;
+            return touch({ ...p, frontLogos: [...(p.frontLogos ?? []), item] });
+          }),
+        }));
+        return newId;
+      },
+
+      updateFrontLogo: (packId, logoId, patch) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id !== packId
+              ? p
+              : touch({
+                  ...p,
+                  frontLogos: (p.frontLogos ?? []).map((l) =>
+                    l.id === logoId ? { ...createLogoDefaults(), ...l, ...patch } : l
+                  ),
+                })
+          ),
+        }));
+      },
+
+      removeFrontLogo: (packId, logoId) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id !== packId
+              ? p
+              : touch({ ...p, frontLogos: (p.frontLogos ?? []).filter((l) => l.id !== logoId) })
+          ),
+        }));
+      },
+
+      addBackLogo: (packId, image) => {
+        let newId = '';
+        set((s) => ({
+          packs: s.packs.map((p) => {
+            if (p.id !== packId) return p;
+            const item = { ...createLogoItem(image), layerOrder: nextTopLayerOrder(p, 'back') };
+            newId = item.id;
+            return touch({ ...p, backLogos: [...(p.backLogos ?? []), item] });
+          }),
+        }));
+        return newId;
+      },
+
+      updateBackLogo: (packId, logoId, patch) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id !== packId
+              ? p
+              : touch({
+                  ...p,
+                  backLogos: (p.backLogos ?? []).map((l) =>
+                    l.id === logoId ? { ...createLogoDefaults(), ...l, ...patch } : l
+                  ),
+                })
+          ),
+        }));
+      },
+
+      removeBackLogo: (packId, logoId) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id !== packId
+              ? p
+              : touch({ ...p, backLogos: (p.backLogos ?? []).filter((l) => l.id !== logoId) })
+          ),
+        }));
+      },
+
+      bringLayerToFront: (packId, face, kind, itemId) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id === packId ? touch(withReorderedLayer(p, face, kind, itemId, true)) : p
+          ),
+        }));
+      },
+
+      sendLayerToBack: (packId, face, kind, itemId) => {
+        set((s) => ({
+          packs: s.packs.map((p) =>
+            p.id === packId ? touch(withReorderedLayer(p, face, kind, itemId, false)) : p
           ),
         }));
       },
@@ -289,7 +438,7 @@ export const useStore = create<StoreState>()(
     }),
     {
       name: 'techpack-studio',
-      version: 13,
+      version: 16,
       migrate: (persisted, version) => {
         // Legacy pack shapes vary release to release (frontText -> frontTexts, fields added to
         // items, etc.), so this whole function works loosely-typed rather than fighting the
@@ -391,6 +540,48 @@ export const useStore = create<StoreState>()(
             ...p,
             frontTexts: (p.frontTexts ?? []).map((t: any) => ({ ...createFrontTextDefaults(), ...t })),
             backTexts: (p.backTexts ?? []).map((t: any) => ({ ...createFrontTextDefaults(), ...t })),
+          }));
+        }
+        if (version < 14 && state?.packs) {
+          // Packs can now have front/back logos (pictures with their background removed).
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontLogos: Array.isArray(p.frontLogos)
+              ? p.frontLogos.map((l: any) => ({ ...createLogoDefaults(), ...l }))
+              : [],
+            backLogos: Array.isArray(p.backLogos)
+              ? p.backLogos.map((l: any) => ({ ...createLogoDefaults(), ...l }))
+              : [],
+          }));
+        }
+        if (version < 15 && state?.packs) {
+          // Texts and pictures can now be reordered ("bring to front"/"send to back") relative
+          // to each other. Backfill layerOrder from each item's current array position — texts
+          // first, then pictures — so nothing visually reshuffles on this migration: pictures
+          // already rendered on top of texts before this feature existed, and this preserves
+          // that exact stacking as the starting point.
+          const withLayerOrder = <T extends { layerOrder?: number }>(items: T[], startAt: number): T[] =>
+            items.map((item, i) => ({ ...item, layerOrder: item.layerOrder ?? startAt + i }));
+          state.packs = state.packs.map((p: any) => {
+            const frontTexts = withLayerOrder(p.frontTexts ?? [], 0);
+            const backTexts = withLayerOrder(p.backTexts ?? [], 0);
+            return {
+              ...p,
+              frontTexts,
+              backTexts,
+              frontLogos: withLayerOrder(p.frontLogos ?? [], frontTexts.length),
+              backLogos: withLayerOrder(p.backLogos ?? [], backTexts.length),
+            };
+          });
+        }
+        if (version < 16 && state?.packs) {
+          // Texts and pictures can now be rotated around their own reference point.
+          state.packs = state.packs.map((p: any) => ({
+            ...p,
+            frontTexts: (p.frontTexts ?? []).map((t: any) => ({ ...createFrontTextDefaults(), ...t })),
+            backTexts: (p.backTexts ?? []).map((t: any) => ({ ...createFrontTextDefaults(), ...t })),
+            frontLogos: (p.frontLogos ?? []).map((l: any) => ({ ...createLogoDefaults(), ...l })),
+            backLogos: (p.backLogos ?? []).map((l: any) => ({ ...createLogoDefaults(), ...l })),
           }));
         }
         return state;

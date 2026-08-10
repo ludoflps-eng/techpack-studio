@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import type { Face, FrontTextSpec, GarmentSpec, PrintZone, TechPack } from './types';
+import type { Face, FrontTextSpec, GarmentSpec, LogoSpec, PrintZone, TechPack } from './types';
 import { SIZE_CHART } from './lib/sizeChart';
 import { GARMENT_STYLE_OPTIONS } from './lib/garmentStyles';
 import { deriveZoneHeight } from './lib/text';
@@ -73,11 +73,36 @@ export function createFrontTextDefaults(): Omit<FrontTextSpec, 'id'> {
     bold: false,
     italic: false,
     underline: false,
+    layerOrder: 0,
+    rotationDeg: 0,
   };
 }
 
 export function createFrontTextItem(): FrontTextSpec {
   return { id: nanoid(8), ...createFrontTextDefaults() };
+}
+
+/** Field defaults for a logo/picture item, excluding the fields that only make sense once an
+ *  actual image has been uploaded (id, the image data itself, and its natural pixel size) — used
+ *  both by createLogoItem and to backfill any missing fields on an existing item. */
+export function createLogoDefaults(): Omit<LogoSpec, 'id' | 'imageDataUrl' | 'naturalWidthPx' | 'naturalHeightPx'> {
+  return {
+    widthCm: 15,
+    crossXPercent: 0.5,
+    crossYPercent: 0.5,
+    circleCm: 40,
+    triangleCm: 20,
+    layerOrder: 0,
+    rotationDeg: 0,
+  };
+}
+
+export function createLogoItem(image: {
+  imageDataUrl: string;
+  naturalWidthPx: number;
+  naturalHeightPx: number;
+}): LogoSpec {
+  return { id: nanoid(8), ...createLogoDefaults(), ...image };
 }
 
 export function createTechPack(name = 'Collection'): TechPack {
@@ -95,5 +120,7 @@ export function createTechPack(name = 'Collection'): TechPack {
     productionNotes: [],
     frontTexts: [createFrontTextItem()],
     backTexts: [createFrontTextItem()],
+    frontLogos: [],
+    backLogos: [],
   };
 }

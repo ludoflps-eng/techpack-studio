@@ -17,6 +17,7 @@
     "@fontsource/big-shoulders-display": "^5.2.5",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/oswald": "^5.2.8",
+    "@imgly/background-removal": "^1.7.0",
     "@tailwindcss/vite": "^4.3.2",
     "nanoid": "^5.1.16",
     "pdfjs-dist": "^6.1.200",

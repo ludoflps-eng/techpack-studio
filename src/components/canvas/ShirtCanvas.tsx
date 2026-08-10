@@ -1,5 +1,5 @@
 import { Fragment, useId } from 'react';
-import type { Face, FrontTextSpec, GarmentSpec, PrintZone } from '../../types';
+import type { Face, FrontTextSpec, GarmentSpec, LogoSpec, PrintZone } from '../../types';
 import {
   canvasSize,
   faceDisplayOffsetY,
@@ -14,6 +14,7 @@ import { resolveFrontTextPosition } from '../../lib/frontTextLayout';
 import { ZonePrint } from './ZonePrint';
 import { MeasurementGuideOverlay } from './MeasurementGuideOverlay';
 import { FrontTextOverlay } from './FrontTextOverlay';
+import { LogoOverlay } from './LogoOverlay';
 
 export function ShirtCanvas({
   face,
@@ -26,6 +27,8 @@ export function ShirtCanvas({
   referenceSize,
   frontTexts,
   backTexts,
+  frontLogos,
+  backLogos,
 }: {
   face: Face;
   garment: GarmentSpec;
@@ -39,9 +42,14 @@ export function ShirtCanvas({
   frontTexts?: FrontTextSpec[];
   /** Rendered when this canvas is the back face — same feature set as frontTexts, independent list. */
   backTexts?: FrontTextSpec[];
+  /** Pictures/logos rendered when this canvas is the front face. */
+  frontLogos?: LogoSpec[];
+  /** Pictures/logos rendered when this canvas is the back face — independent list. */
+  backLogos?: LogoSpec[];
 }) {
   const faceZones = zones.filter((z) => z.face === face);
   const faceTexts = face === 'front' ? frontTexts : backTexts;
+  const faceLogos = face === 'front' ? frontLogos : backLogos;
   const effectiveReferenceSize = referenceSize ?? 'M';
   const { width, height, originX, originY } = canvasSize(garment, effectiveReferenceSize);
   const placement = templateImage(garment.chestWidthCm, face, effectiveReferenceSize);
@@ -115,27 +123,51 @@ export function ShirtCanvas({
           </>
         )}
 
-        {faceTexts
-          ?.filter((ft) => ft.content.trim() !== '')
-          .map((ft) => (
+        {layeredFaceItems(faceTexts, faceLogos).map((layer) =>
+          layer.kind === 'text' ? (
             <FrontTextOverlay
-              key={ft.id}
+              key={layer.item.id}
               face={face}
               garment={garment}
               referenceSize={effectiveReferenceSize}
               frontText={{
-                ...ft,
-                ...resolveFrontTextPosition(ft, faceTexts, {
+                ...layer.item,
+                ...resolveFrontTextPosition(layer.item, faceTexts ?? [], {
                   face,
                   chestWidthCm: garment.chestWidthCm,
                   referenceSize: effectiveReferenceSize,
                 }),
               }}
             />
-          ))}
+          ) : (
+            <LogoOverlay
+              key={layer.item.id}
+              face={face}
+              garment={garment}
+              referenceSize={effectiveReferenceSize}
+              logo={layer.item}
+            />
+          )
+        )}
       </g>
     </svg>
   );
+}
+
+type LayeredItem =
+  | { kind: 'text'; item: FrontTextSpec }
+  | { kind: 'logo'; item: LogoSpec };
+
+/** Merges this face's texts (skipping empty ones) and pictures into a single paint order, sorted
+ *  by layerOrder ascending (lowest first, so it paints on the bottom — SVG paints in document
+ *  order) — so "bring to front"/"send to back" can interleave a text above or below a picture,
+ *  not just reorder within its own type. */
+function layeredFaceItems(texts: FrontTextSpec[] | undefined, logos: LogoSpec[] | undefined): LayeredItem[] {
+  const items: LayeredItem[] = [
+    ...(texts ?? []).filter((t) => t.content.trim() !== '').map((item): LayeredItem => ({ kind: 'text', item })),
+    ...(logos ?? []).map((item): LayeredItem => ({ kind: 'logo', item })),
+  ];
+  return items.sort((a, b) => (a.item.layerOrder ?? 0) - (b.item.layerOrder ?? 0));
 }
 
 /** A 1cm-spaced horizontal ruler: the bottom line sits at guide A's bottom (the hem reference,

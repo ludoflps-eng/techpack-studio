@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import type { FrontTextSpec, TechPack } from '../types';
-import { createFrontTextDefaults } from '../factories';
+import { createFrontTextDefaults, createLogoDefaults } from '../factories';
 
 function slug(s: string) {
   return s
@@ -35,6 +35,11 @@ export function readTechPackFile(file: File): Promise<TechPack> {
         data.frontTexts = rawList.map((t) => ({ ...createFrontTextDefaults(), ...t, id: t.id ?? nanoid(8) }));
         const rawBackList = Array.isArray(data.backTexts) ? data.backTexts : [];
         data.backTexts = rawBackList.map((t) => ({ ...createFrontTextDefaults(), ...t, id: t.id ?? nanoid(8) }));
+        // Same normalization for logos — absent entirely in exports from before this feature.
+        const rawFrontLogos = Array.isArray(data.frontLogos) ? data.frontLogos : [];
+        data.frontLogos = rawFrontLogos.map((l) => ({ ...createLogoDefaults(), ...l, id: l.id ?? nanoid(8) }));
+        const rawBackLogos = Array.isArray(data.backLogos) ? data.backLogos : [];
+        data.backLogos = rawBackLogos.map((l) => ({ ...createLogoDefaults(), ...l, id: l.id ?? nanoid(8) }));
         resolve(data);
       } catch (err) {
         reject(err);
